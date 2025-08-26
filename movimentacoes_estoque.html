@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <title>Movimentações de Estoque</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <?!= HtmlService.createHtmlOutputFromFile('styles_pagamentos').getContent(); ?>
+  </head>
+  <body>
+  <div class="container">
+    <div class="header">
+      <h2>MOVIMENTAÇÕES DE ESTOQUE</h2>
+    </div>
+    <div class="filter-container">
+      <div>
+        <div class="filter-group">
+          <label for="data-inicio">Data Início:</label>
+          <input type="date" id="data-inicio" class="form-control">
+        </div>
+        <div class="filter-group">
+          <label for="data-fim">Data Fim:</label>
+          <input type="date" id="data-fim" class="form-control">
+        </div>
+        <div class="filter-group">
+          <label for="tipo-mov">Tipo:</label>
+          <select id="tipo-mov" class="form-control">
+            <option value="">Todos</option>
+            <option value="entrada">Entrada</option>
+            <option value="saida">Saída</option>
+          </select>
+        </div>
+        <button class="btn btn-filter" onclick="applyFilters()">
+          <i class="fas fa-search"></i> Aplicar
+        </button>
+        <button class="btn btn-export" onclick="exportToXLSX()">
+          <i class="fas fa-file-excel"></i> Exportar Excel
+        </button>
+      </div>
+      <div class="pagination">
+        <button class="btn btn-primary" onclick="goToFirstPage()"><i class="fas fa-angle-double-left"></i></button>
+        <button class="btn btn-primary" onclick="prevPage()"><i class="fas fa-angle-left"></i></button>
+        <span id="page-info"></span>
+        <button class="btn btn-primary" onclick="nextPage()"><i class="fas fa-angle-right"></i></button>
+        <button class="btn btn-primary" onclick="goToLastPage()"><i class="fas fa-angle-double-right"></i></button>
+      </div>
+    </div>
+    <div id="table-container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Código Item</th>
+            <th>Data</th>
+            <th>Produto</th>
+            <th>Tipo</th>
+            <th>Qtde</th>
+            <th>Custo Unitario</th>
+            <th>Origem</th>
+          </tr>
+        </thead>
+        <tbody id="movimentacoes-table-body">
+          <tr>
+            <td colspan="7">Carregando dados...</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="total-sum" id="total-sum">Custo Uniário Tota: R$ 0,00</div>
+    </div>
+   </div>
+
+   <script>
+    const supabaseUrl = 'https://bhkigsipuxqgpafikglm.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJoa2lnc2lwdXhxZ3BhZmlrZ2xtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4MDE4NDMsImV4cCI6MjA3MTM3Nzg0M30.IBHX2UHeP7foTo96MFUAZUHc40O1gyNBeKqolhhceXM';
+    const client  = supabase.createClient(supabaseUrl, supabaseKey);
+
+    let allData = [];
+    let currentPage = 1;
+    const rowsPerPage = 100;
+
+    // Função para formatar data de "YYYY-MM-DD HH:mm:ss" para "DD/MM/YYYY HH:mm"
+    function formatDateToBr(dateTimeStr) {
+      if (!dateTimeStr) return '';
+      const [datePart, timePart] = dateTimeStr.split(' ');
+      const [year, month, day] = datePart.split('-');
+      const time = timePart ? timePart.substring(0, 5) : '';
+      return `${day}/${month}/${year} ${time}`;
+    }
+
+    // Função para garantir duas casas decimais
+    function ensureTwoDecimals(value) {
+      if (!value) return '0,00';
+      const str = String(value).replace('R$', '').trim();
+      if (/,\d{2}$/.test(str)) return str;
+      if (/,\d{1}$/.test(str)) return str + '0';
+      if (!/,/.test(str)) return str + ',00';
+      return str;
+    }
+
+    // Função para formatar número com duas casas decimais
+    function formatTwoDecimals(num) {
+      return num.toFixed(2).replace('.', ',');
+    }
+
+    // Função para renderizar a tabela
+    function renderTable() {
+      const tbody = document.getElementById('movimentacoes-table-body');
+      tbody.innerHTML = '';
+      if (allData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7">Nenhuma movimentação encontrada</td></tr>';
+        document.getElementById('total-sum').innerText = 'Custo Total: R$ 0,00';
+        document.getElementById('page-info').innerText = '';
+        return;
+      }
+      const start = (currentPage - 1) * rowsPerPage;
+      const end = start + rowsPerPage;
+      const pageData = allData.slice(start, end);
+      let totalPreco = 0;
+      pageData.forEach(mov => {
+        const row = document.createElement('tr');
+        const precoDisplay = mov.custo_unitario || '0,00';
+        const precoNum = parseFloat((mov.custo_unitario || '0').toString().replace(',', '.')) || 0;
+        totalPreco += precoNum * (mov.qtde || 0);
+        row.innerHTML = `
+          <td>${mov.id || ''}</td>
+          <td>${formatDateToBr(mov.data) || ''}</td>
+          <td>${mov.produto || ''}</td>
+          <td>${mov.tipo || ''}</td>
+          <td>${mov.qtde || ''}</td>
+          <td>R$ ${ensureTwoDecimals(precoDisplay)}</td>
+          <td>${mov.origem || ''}</td>
+        `;
+        tbody.appendChild(row);
+      });
+      document.getElementById('total-sum').innerText =
+        'Custo Total: R$ ' + formatTwoDecimals(totalPreco);
+      document.getElementById('page-info').innerText =
+        `Página ${currentPage} de ${Math.ceil(allData.length / rowsPerPage)}`;
+    }
+
+    // Função para aplicar filtros
+    async function applyFilters() {
+      const dataInicio = document.getElementById('data-inicio').value;
+      const dataFim = document.getElementById('data-fim').value;
+      const tipo = document.getElementById('tipo-mov').value;
+      let query = client
+        .from('movimentacoes_estoque')
+        .select('*');
+      if (dataInicio) {
+        query = query.gte('data', dataInicio);
+      }
+      if (dataFim) {
+        query = query.lte('data', dataFim);
+      }
+      if (tipo) {
+        query = query.eq('tipo', tipo);
+      }
+      const { data, error } = await query;
+      if (error) {
+        alert(`Erro ao buscar dados: ${error.message}`);
+      } else {
+        allData = data || [];
+        currentPage = 1;
+        renderTable();
+      }
+    }
+
+    function exportToXLSX() {
+      // 1. Verifica se há dados para exportar
+      if (allData.length === 0) {
+          alert('Nenhum dado para exportar.');
+          return;
+      }
+
+      // 2. Calcula o total de todas as linhas em 'allData'
+      let totalPreco = 0;
+      allData.forEach(mov => {
+          const precoUnitario = parseFloat((mov.custo_unitario || '0').toString().replace(',', '.')) || 0;
+          const quantidade = parseFloat(mov.qtde || '0') || 0;
+          // O cálculo do total é feito aqui: custo unitário * quantidade
+          totalPreco += precoUnitario * quantidade;
+      });
+
+      // 3. Formata o valor total para exibição
+      const totalSumValue = formatTwoDecimals(totalPreco);
+
+      // 4. Mapeia os dados brutos para o formato da planilha
+      const wsData = allData.map(mov => ({
+          "Código Item": mov.id || '',
+          "Data": formatDateToBr(mov.data) || '',
+          "Produto": mov.produto || '',
+          "Tipo": mov.tipo || '',
+          "Qtde": mov.qtde || '',
+          "Custo Unitario": `R$ ${ensureTwoDecimals(mov.custo_unitario || '0,00')}`,
+          "Origem": mov.origem || ''
+      }));
+
+      // 5. Adiciona uma linha em branco e a linha de total
+      // O ajuste foi feito aqui: 'TOTAL:' na coluna "Qtde" e o valor total na coluna "Custo Unitario"
+      wsData.push({});
+      wsData.push({
+          "Qtde": "TOTAL:",
+          "Custo Unitario": `R$ ${totalSumValue}`
+      });
+
+      // 6. Converte os dados formatados em uma planilha
+      const ws = XLSX.utils.json_to_sheet(wsData);
+
+      // 7. Cria o arquivo de trabalho (workbook) e adiciona a planilha
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Movimentações");
+
+      // 8. Gera e faz o download do arquivo XLSX
+      XLSX.writeFile(wb, 'relatorio_movimentacoes.xlsx');
+  }
+    
+    // Função para próxima página
+    function nextPage() {
+      if (currentPage < Math.ceil(allData.length / rowsPerPage)) {
+        currentPage++;
+        renderTable();
+      }
+    }
+
+    // Função para ir para a primeira página
+    function goToFirstPage() {
+      currentPage = 1;
+      renderTable();
+    }
+
+    // Função para ir para a última página
+    function goToLastPage() {
+      currentPage = Math.ceil(allData.length / rowsPerPage);
+      renderTable();
+    }
+
+    // Carrega os dados ao iniciar
+    async function loadMovimentacoes() {
+      const { data, error } = await client
+        .from('movimentacoes_estoque')
+        .select('*');
+      if (error) {
+        alert(`Erro ao carregar movimentações: ${error.message}`);
+      } else {
+        allData = data || [];
+        renderTable();
+      }
+    }
+
+    // Inicializa a página
+    loadMovimentacoes();
+  </script>
+</body>
+</html>

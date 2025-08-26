@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <title>Estoque Atual</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1"></script>
+  <?!= HtmlService.createHtmlOutputFromFile('styles_estoque_atual').getContent(); ?>
+</head>
+<body>
+  <div class="container">
+    <!-- Cabeçalho -->
+    <div class="header">
+      <h2>ESTOQUE ATUAL E CMP</h2>
+      <div>
+        <button class="btn btn-primary" onclick="generateReport()">
+          <i class="fas fa-file-excel"></i> Exportar
+        </button>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filter-container">
+      <div class="filter-group">
+        <label for="search-term">Pesquisar:</label>
+        <input
+          type="text"
+          id="search-term"
+          class="form-control"
+          placeholder="Código ou Produto"
+          onkeyup="applyFilters()"
+        >
+      </div>
+      <div class="filter-group">
+        <label for="min-qtd">Qtd. Mínima:</label>
+        <input
+          type="number"
+          id="min-qtd"
+          class="form-control"
+          min="0"
+          onchange="applyFilters()"
+        >
+      </div>
+      <div class="filter-group">
+        <label for="max-qtd">Qtd. Máxima:</label>
+        <input
+          type="number"
+          id="max-qtd"
+          class="form-control"
+          min="0"
+          onchange="applyFilters()"
+        >
+      </div>
+      <button class="btn btn-filter" onclick="applyFilters()">
+        <i class="fas fa-search"></i> Filtrar
+      </button>
+    </div>
+
+    <!-- Tabela -->
+    <div id="table-container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Produto</th>
+            <th>Qtd Atual</th>
+            <th>Custo Médio</th>
+          </tr>
+        </thead>
+        <tbody id="estoque-table-body">
+          <tr>
+            <td colspan="4">Carregando dados...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+   </div>
+
+  <body> 
+  <script>  
+
+    const supabaseUrl = 'https://bhkigsipuxqgpafikglm.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJoa2lnc2lwdXhxZ3BhZmlrZ2xtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4MDE4NDMsImV4cCI6MjA3MTM3Nzg0M30.IBHX2UHeP7foTo96MFUAZUHc40O1gyNBeKqolhhceXM';
+    const client = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Função para formatar valores monetários
+    function formatCurrency(value) {
+      if (!value && value !== 0) return 'R$ 0,00';
+      const num = parseFloat(String(value).replace(',', '.'));
+      return 'R$ ' + num.toFixed(2).replace('.', ',');
+    }
+
+    // Função para carregar dados do estoque
+    async function loadEstoque() {
+      const { data, error } = await client
+        .from('estoque_atual')
+        .select('*')
+        .order('codigo', { ascending: true });
+
+      if (error) {
+        console.error('Erro ao carregar estoque:', error.message);
+        return;
+      }
+
+      updateTable(data);
+    }
+
+    // Função para atualizar a tabela com os dados
+    function updateTable(data) {
+      const tbody = document.getElementById('estoque-table-body');
+      tbody.innerHTML = '';
+
+      if (data.length > 0) {
+        data.forEach(item => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${item.codigo || ''}</td>
+            <td>${item.produto || ''}</td>
+            <td>${parseFloat(item.qtd_atual || 0).toLocaleString('pt-BR')}</td>
+            <td>${formatCurrency(item.custo_medio || 0)}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      } else {
+        tbody.innerHTML = '<tr><td colspan="4">Nenhum item válido encontrado</td></tr>';
+      }
+    }
+
+    // Função para aplicar filtros
+    async function applyFilters() {
+      const searchTerm = document.getElementById('search-term').value;
+      const minQtd = document.getElementById('min-qtd').value;
+      const maxQtd = document.getElementById('max-qtd').value;
+
+      let query = client
+        .from('estoque_atual')
+        .select('*')
+        .order('codigo', { ascending: true });
+
+      if (searchTerm) {
+        query = query.or(`codigo.ilike.%${searchTerm}%,produto.ilike.%${searchTerm}%`);
+      }
+
+      if (minQtd) {
+        query = query.gte('qtd_atual', minQtd);
+      }
+
+      if (maxQtd) {
+        query = query.lte('qtd_atual', maxQtd);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Erro ao filtrar estoque:', error.message);
+        return;
+      }
+
+      updateTable(data);
+    }
+
+    // Função para limpar filtros
+    function clearFilters() {
+      document.getElementById('search-term').value = '';
+      document.getElementById('min-qtd').value = '';
+      document.getElementById('max-qtd').value = '';
+      loadEstoque();
+    }
+
+    // Função para gerar relatório
+    async function generateReport() {
+      const searchTerm = document.getElementById('search-term').value.trim();
+      const minQtd = document.getElementById('min-qtd').value;
+      const maxQtd = document.getElementById('max-qtd').value;
+
+      let query = client
+        .from('estoque_atual')
+        .select('*')
+        .order('codigo', { ascending: true });
+
+      if (searchTerm) {
+        query = query.or(`codigo.ilike.%${searchTerm}%,produto.ilike.%${searchTerm}%`);
+      }
+
+      if (minQtd) {
+        query = query.gte('qtd_atual', minQtd);
+      }
+
+      if (maxQtd) {
+        query = query.lte('qtd_atual', maxQtd);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Erro ao gerar relatório:', error.message);
+        return;
+      }
+
+      if (data.length === 0) {
+        alert("Nenhum dado disponível para gerar o relatório.");
+        return;
+      }
+
+      const wsData = data.map(item => [
+        item.codigo || '',
+        item.produto || '',
+        parseFloat(item.qtd_atual || 0).toLocaleString('pt-BR'),
+        formatCurrency(item.custo_medio || 0).replace('R$ ', '')
+      ]);
+
+      const ws = XLSX.utils.aoa_to_sheet([["Código", "Produto", "Qtd Atual", "Custo Médio"], ...wsData]);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Estoque Atual");
+
+      // Gerar o nome do arquivo com a data atual
+      const today = new Date();
+      const dateString = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+      const fileName = `Relatorio_Estoque_${dateString}.xlsx`;
+
+      XLSX.writeFile(wb, fileName);
+    }
+
+    // Carregar dados ao iniciar a página
+    document.addEventListener('DOMContentLoaded', loadEstoque);
+  </script>
+</body>
+</html>

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1"></script>
+
+    <title>Relatório de Vendas</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    
+    <style>
+        .card-header {
+            background-color: #3498db;
+            border-bottom: 1px solid #e3e6f0;
+            padding: 0.75rem 1.25rem !important;
+            margin-bottom: 0;
+        }
+        .card-header h5 {
+            color: #fff;
+            margin-bottom: 0;
+        }
+        .card-header button {
+            margin-left: 10px;
+        }
+        .card-body {
+            padding-top: 15px;
+        }
+        .total-display {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2e59d9;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .filter-section {
+            background-color: #f8f9fa;
+            padding: 10px !important;
+            margin-bottom: 15px !important;
+            border-radius: 5px;
+        }
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+        .status-finalizada {
+            color: #1cc88a;
+            font-weight: bold;
+        }
+        .status-cancelada {
+            color: #e74a3b;
+            font-weight: bold;
+        }
+        .status-pendente {
+            color: #f6c23e;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-3">
+        <div class="card shadow mb-4">
+            <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                <h5 class="m-0 font-weight-bold">RELATÓRIO DE VENDAS</h5>
+                <div>
+                    <span id="exportMessage" class="text-light me-2" style="display: none;">
+                        <i class="bi bi-hourglass-split"></i> Gerando relatório...
+                    </span>
+                    <button id="exportExcel" class="btn btn-success btn-sm">
+                        <i class="bi bi-file-earmark-excel"></i> Exportar XLSX
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="filter-section">
+                    <form id="filterForm" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="startDate" class="form-label">Data Inicial</label>
+                            <input type="date" class="form-control" id="startDate">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="endDate" class="form-label">Data Final</label>
+                            <input type="date" class="form-control" id="endDate">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="id_venda" class="form-label">Código da Venda</label>
+                            <input type="text" class="form-control" id="id_venda" placeholder="ID da Venda">
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="button" id="filterButton" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Filtrar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="table-responsive">
+                    <table id="salesTable" class="table table-striped table-bordered" style="width:100%">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Código</th>
+                                <th>ID Venda</th>
+                                <th>Data</th>
+                                <th>Item</th>
+                                <th>Qtde</th>
+                                <th>Preço Unitário</th>
+                                <th>Total</th>
+                                <th>Valor Desconto</th>
+                                <th>Método Pagamento</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="total-display text-end">
+                    Total Geral: <span id="totalSum">R$ 0,00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <!-- SheetJS (xlsx) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <script>
+        const supabaseUrl = 'https://bhkigsipuxqgpafikglm.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJoa2lnc2lwdXhxZ3BhZmlrZ2xtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4MDE4NDMsImV4cCI6MjA3MTM3Nzg0M30.IBHX2UHeP7foTo96MFUAZUHc40O1gyNBeKqolhhceXM';
+        const client = supabase.createClient(supabaseUrl, supabaseKey);
+
+     // Variáveis globais
+    let paymentsData;
+    let dataTable;
+
+    // Função para formatar valor monetário
+    function formatCurrency(value) {
+        if (value === undefined || value === null) {
+            return 'R$ 0,00';
+        }
+        if (typeof value === 'string') {
+            value = parseFloat(value.replace(/[^\d,]/g, '').replace(',', '.'));
+        }
+        if (isNaN(value)) {
+            return 'R$ 0,00';
+        }
+        return 'R$ ' + value.toFixed(2).replace('.', ',');
+    }
+
+        function formatBrazilianDateTime(dateStr) {
+            if (!dateStr) return '';
+
+            // Se a data já estiver no formato "DD/MM/YYYY HH:mm", retorne diretamente
+            if (/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/.test(dateStr)) {
+                return dateStr;
+            }
+
+            let date;
+
+            // Trata o formato "YYYY-MM-DD HH:mm"
+            if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(dateStr)) {
+                const [datePart, timePart] = dateStr.split(' ');
+                const [year, month, day] = datePart.split('-').map(Number);
+                const [hours, minutes] = timePart.split(':').map(Number);
+                date = new Date(year, month - 1, day, hours, minutes);
+            }
+
+            // Trata o formato ISO "YYYY-MM-DDTHH:mm:ssZ"
+            else if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(\.\d+)?(Z|[\+\-]\d{2}:\d{2})?$/.test(dateStr)) {
+                date = new Date(dateStr);
+            }
+
+            // Se ainda não foi possível interpretar, tente parsear com parseDateString
+            else {
+                date = parseDateString(dateStr);
+            }
+
+            if (!(date instanceof Date) || isNaN(date)) return '';
+
+            const formattedDay = String(date.getDate()).padStart(2, '0');
+            const formattedMonth = String(date.getMonth() + 1).padStart(2, '0');
+            const formattedYear = date.getFullYear();
+            const formattedHours = String(date.getHours()).padStart(2, '0');
+            const formattedMinutes = String(date.getMinutes()).padStart(2, '0');
+
+            return `${formattedDay}/${formattedMonth}/${formattedYear} ${formattedHours}:${formattedMinutes}`;
+        }
+
+
+    // Função para converter string de data para objeto Date
+    function parseDateString(dateStr) {
+        if (!dateStr) return null;
+
+        // Se a data estiver no formato "DD/MM/YYYY HH:mm", faça o parse
+        const [datePart, timePart] = dateStr.split(' ');
+        const [day, month, year] = datePart.split('/').map(Number);
+        const [hours, minutes] = timePart ? timePart.split(':').map(Number) : [0, 0];
+
+        return new Date(year, month - 1, day, hours, minutes);
+    }
+
+    // Função para calcular e atualizar o total geral
+    function updateTotalSum() {
+        let total = 0;
+        if (dataTable) {
+            dataTable.rows({ search: 'applied' }).every(function() {
+                const rowData = this.data();
+                let value = rowData.total;
+                if (typeof value === 'string') {
+                    value = parseFloat(value.replace('R$', '').replace(/\./g, '').replace(',', '.'));
+                }
+                total += isNaN(value) ? 0 : value;
+            });
+        }
+        $('#totalSum').text(formatCurrency(total));
+    }
+
+    // Função para inicializar a tabela
+    function initializeDataTable() {
+        if ($.fn.DataTable.isDataTable('#salesTable')) {
+            dataTable.destroy();
+        }
+        dataTable = $('#salesTable').DataTable({
+            data: paymentsData,
+            columns: [
+                { data: 'codigo', title: 'Código' },
+                { data: 'id_venda', title: 'ID Venda' },
+                {
+                    data: 'data_venda',
+                    title: 'Data',
+                    render: function(data) {
+                        return formatBrazilianDateTime(data); // Usa a função para formatar a data no formato brasileiro
+                    }
+                },
+                { data: 'item', title: 'Item' },
+                {
+                    data: 'quantidade',
+                    title: 'Qtde',
+                    render: function(data) {
+                        return data ? parseFloat(data).toFixed(2) : '0,00';
+                    }
+                },
+                {
+                    data: 'preco_unitario',
+                    title: 'Preço Unitário',
+                    render: formatCurrency
+                },
+                {
+                    data: 'total',
+                    title: 'Total',
+                    render: formatCurrency
+                },
+                {
+                    data: 'valor_desconto',
+                    title: 'Valor Desconto',
+                    render: formatCurrency
+                },
+                { data: 'metodo_pagamento', title: 'Método Pagamento' },
+                {
+                    data: 'status',
+                    title: 'Status',
+                    render: function(data) {
+                        if (data === 'finalizada') {
+                            return '<span class="status-finalizada">Finalizada</span>';
+                        } else if (data === 'cancelada') {
+                            return '<span class="status-cancelada">Cancelada</span>';
+                        } else {
+                            return '<span class="status-pendente">Pendente</span>';
+                        }
+                    }
+                }
+            ],
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
+            },
+            responsive: true,
+            pageLength: 10,
+            lengthMenu: [10, 25, 50, 100],
+            initComplete: function() {
+                updateTotalSum();
+            },
+            drawCallback: function() {
+                updateTotalSum();
+            }
+        });
+    }
+
+    // Função para aplicar os filtros
+    function applyFilters() {
+        const startDateInput = $('#startDate').val();
+        const endDateInput = $('#endDate').val();
+        const id_vendaInput = $('#id_venda').val().toLowerCase();
+        const startDate = startDateInput ? new Date(startDateInput) : null;
+        const endDate = endDateInput ? new Date(endDateInput) : null;
+        if (endDate) {
+            endDate.setDate(endDate.getDate() + 1);
+        }
+        $.fn.dataTable.ext.search = [];
+        $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+            const rowData = paymentsData[dataIndex];
+            const rowDate = parseDateString(rowData.data_venda);
+            // Filtro por data
+            if (startDate && rowDate < startDate) return false;
+            if (endDate && rowDate >= endDate) return false;
+            // Filtro por código de barras
+            if (id_vendaInput && !rowData.id_venda.toLowerCase().includes(id_vendaInput)) return false;
+            return true;
+        });
+        if (dataTable) {
+            dataTable.draw();
+        }
+    }
+
+    // Exportar para Excel
+    $('#exportExcel').on('click', function() {
+        $('#exportMessage').show();
+        const exportButton = $(this);
+        exportButton.prop('disabled', true);
+        setTimeout(function() {
+            try {
+                if (!dataTable) {
+                    throw new Error("A tabela não foi inicializada.");
+                }
+                const filteredData = dataTable.rows({ search: 'applied' }).data().toArray();
+                const exportData = filteredData.map(row => {
+                    const parseCurrencyForExport = (value) => {
+                        if (typeof value === 'number') {
+                            return value;
+                        }
+                        const cleanedValue = String(value).replace('R$', '').replace(/\s/g, '').replace(/\./g, '').replace(',', '.');
+                        const parsedValue = parseFloat(cleanedValue);
+                        return isNaN(parsedValue) ? 0 : parsedValue;
+                    };
+                    return {
+                        'Código': row.codigo,
+                        'ID Venda': row.id_venda,
+                        'Data': formatBrazilianDateTime(row.data_venda), // Formata a data no Excel também
+                        'Item': row.item,
+                        'Quantidade': row.quantidade,
+                        'Preço Unitário': parseCurrencyForExport(row.preco_unitario),
+                        'Total': parseCurrencyForExport(row.total),
+                        'Desconto': parseCurrencyForExport(row.valor_desconto),
+                        'Método Pagamento': row.metodo_pagamento,
+                        'Status': row.status
+                    };
+                });
+                // Adicionar o total recebido como uma linha extra no final
+                const totalRecebidoLabel = $('#totalSum').text().trim();
+                const totalRecebidoValue = totalRecebidoLabel.replace('R$', '').replace(/\s/g, '').replace(/\./g, '').replace(',', '.');
+                exportData.push({
+                    'Código': '',
+                    'ID Venda': 'TOTAL RECEBIDO',
+                    'Data': '',
+                    'Item': '',
+                    'Quantidade': '',
+                    'Preço Unitário': '',
+                    'Total': totalRecebidoValue,
+                    'Desconto': '',
+                    'Método Pagamento': '',
+                    'Status': ''
+                });
+                const ws = XLSX.utils.json_to_sheet(exportData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Relatório de Vendas");
+                XLSX.writeFile(wb, 'relatorio_vendas.xlsx');
+            } catch (error) {
+                console.error('Erro ao exportar para Excel:', error);
+                alert('Ocorreu um erro ao gerar o relatório. Por favor, tente novamente.');
+            } finally {
+                $('#exportMessage').hide();
+                exportButton.prop('disabled', false);
+            }
+        }, 100);
+    });
+
+    // Evento de clique para o botão de filtro
+    $('#filterButton').on('click', function() {
+        applyFilters();
+    });
+
+    // Função para carregar dados do Supabase
+    async function loadSalesData() {
+        try {
+            const { data, error } = await client
+                .from('itens_venda')
+                .select('*');
+            if (error) {
+                throw error;
+            }
+            paymentsData = data.map(row => ({
+                'codigo': row.codigo,
+                'id_venda': row.id_venda,
+                'item': row.item,
+                'preco_unitario': row.preco_unitario,
+                'total': row.total,
+                'metodo_pagamento': row.metodo_pagamento,
+                'status': row.status,
+                'quantidade': row.quantidade,
+                'valor_desconto': row['valor_desconto'],
+                'data_venda': row['data_venda'] // Garanta que a propriedade esteja correta
+            }));
+            initializeDataTable();
+        } catch (error) {
+            console.error('Erro ao carregar dados:', error);
+            alert('Erro ao carregar dados. Por favor, recarregue a página.');
+        }
+    }
+
+    // Carrega os dados quando a página estiver pronta
+    $(document).ready(function() {
+        loadSalesData();
+    });
+
+    </script>
+</body>
+</html>
