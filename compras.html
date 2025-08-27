@@ -9,78 +9,327 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
-  <style>
+    <style>
     :root {
-      --primary-color: #3498db; //VERDE AZULADO ESTILOSO.
-      --secondary-color: #3498db;
-      --success-color: #27ae60;
-      --danger-color: #e74c3c;
-      --warning-color: #f39c12;
-      --light-color: #ecf0f1;
-      --dark-color: #2c3e50;
-      --text-color: #333;
+      --primary-blue: #3498db;
+      --secondary-blue: #007bff;
+      --dark-gray: #6c757d;
+      --light-gray: #f4f4f4;
+      --white: #ffffff;
       --border-color: #ddd;
+      --hover-color: #f5f5f5;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
     
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 20px;
       background-color: #f8f9fa;
-      color: var(--text-color);
+      color: #333;
+      line-height: 1.4;
+      padding: 15px;
     }
     
     .container {
       max-width: 1400px;
       margin: 0 auto;
-      background-color: white;
+      background: var(--white);
       border-radius: 8px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-      padding: 25px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+      overflow: hidden;
     }
     
     .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 25px;
-      padding-bottom: 15px;
-      border-bottom: 1px solid var(--border-color);
+      background: var(--primary-blue);
+      padding: 15px 20px;
+      color: white;
     }
     
-    .header h1 {
-      margin: 0;
-      color: 000;
-      font-size: 24px;
+    .header h2 {
+      font-size: 20px;
       font-weight: 600;
     }
     
+    /* Filtros compactos em linha */
+    .filter-row {
+      display: flex;
+      align-items: center;
+      padding: 15px 20px;
+      background: #f9f9f9;
+      border-bottom: 1px solid var(--border-color);
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .filter-group label {
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    
+    .form-control {
+      padding: 8px 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-size: 13px;
+      min-width: 130px;
+    }
+    
     .btn {
-      padding: 8px 16px;
+      padding: 8px 14px;
       border: none;
       border-radius: 4px;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 500;
-      margin-left: 10px;
-      text-decoration: none;
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
+      gap: 6px;
+      transition: all 0.2s;
     }
     
-    .btn i {
-      margin-right: 5px;
+    .btn-filter {
+      background-color: var(--dark-gray);
+      color: white;
+    }
+    
+    .btn-filter:hover {
+      background-color: #5a6268;
+    }
+    
+    .btn-export {
+      background-color: #28a745;
+      color: white;
+    }
+    
+    .btn-export:hover {
+      background-color: #218838;
+    }
+    
+    /* Área da tabela */
+    .table-area {
+      padding: 0 20px 15px 20px;
+    }
+    
+    .table-container {
+      overflow-x: auto;
+      margin-top: 15px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+    }
+    
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 800px;
+    }
+    
+    .table th {
+      background-color: var(--primary-blue);
+      color: white;
+      padding: 12px 10px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    
+    .table td {
+      padding: 10px;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 13px;
+    }
+    
+    .table tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .table tr:hover {
+      background-color: var(--hover-color);
+    }
+    
+    /* Rodapé com totais e paginação */
+    .table-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0 5px 0;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    
+    .total-sum {
+      font-weight: 600;
+      font-size: 13px;
+      color: #333;
+    }
+    
+    .pagination {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .btn-pagination {
+      background-color: var(--secondary-blue);
+      color: white;
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+    
+    .btn-pagination:hover {
+      background-color: #0069d9;
+    }
+    
+    .page-info {
+      font-size: 13px;
+      margin: 0 8px;
+      color: #555;
+    }
+    
+    /* Responsividade */
+    @media (max-width: 768px) {
+      .filter-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+      
+      .filter-group {
+        width: 100%;
+        justify-content: space-between;
+      }
+      
+      .form-control {
+        flex-grow: 1;
+        max-width: 200px;
+      }
+      
+      .action-buttons {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+        justify-content: center;
+        margin-top: 5px;
+      }
+      
+      .table-footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <title>Gestão de Compras</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --primary-blue: #3498db;
+      --secondary-blue: #007bff;
+      --dark-gray: #6c757d;
+      --light-gray: #f4f4f4;
+      --white: #ffffff;
+      --border-color: #ddd;
+      --hover-color: #f5f5f5;
+      --success-color: #28a745;
+      --danger-color: #dc3545;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      color: #333;
+      line-height: 1.4;
+      padding: 15px;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: var(--white);
+      border-radius: 8px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: var(--primary-blue);
+      padding: 15px 20px;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    
+    .header h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      text-decoration: none;
     }
     
     .btn-primary {
-      background-color: var(--secondary-color);
+      background-color: var(--secondary-blue);
       color: white;
     }
     
     .btn-primary:hover {
-      background-color: #2980b9;
+      background-color: #0069d9;
+    }
+    
+    .btn-nav {
+      background-color: #f8f9fa;
+      color: #333;
+      border: 1px solid #ddd;
+    }
+    
+    .btn-nav:hover {
+      background-color: #e9ecef;
     }
     
     .btn-success {
@@ -89,7 +338,7 @@
     }
     
     .btn-success:hover {
-      background-color: #219653;
+      background-color: #218838;
     }
     
     .btn-danger {
@@ -98,79 +347,138 @@
     }
     
     .btn-danger:hover {
-      background-color: #c0392b;
+      background-color: #c82333;
     }
     
     .btn-report {
-      background-color: var(--primary-color);
+      background-color: #6f42c1;
       color: white;
     }
     
     .btn-report:hover {
-      background-color: #1a252f;
+      background-color: #5a36a9;
     }
     
-    .btn-nav {
-      background-color: var(--warning-color);
-      color: var(--dark-color);
+    /* Filtros */
+    .filter-row {
+      display: flex;
+      align-items: center;
+      padding: 15px 20px;
+      background: #f9f9f9;
+      border-bottom: 1px solid var(--border-color);
+      gap: 15px;
+      flex-wrap: wrap;
     }
     
-    .btn-nav:hover {
-      background-color: #e67e22;
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .filter-group label {
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
     }
     
     .form-control {
-      padding: 8px 12px;
+      padding: 8px 10px;
       border: 1px solid var(--border-color);
       border-radius: 4px;
-      font-size: 14px;
-      transition: border-color 0.3s ease;
+      font-size: 13px;
+      min-width: 130px;
     }
     
-    .form-control:focus {
-      border-color: var(--secondary-color);
-      outline: none;
-      box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    /* Área da tabela */
+    .table-area {
+      padding: 0 20px 15px 20px;
+    }
+    
+    .table-container {
+      overflow-x: auto;
+      margin-top: 15px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
     }
     
     .table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
-      font-size: 14px;
+      min-width: 800px;
     }
     
     .table th {
-      background-color: var(--primary-color);
+      background-color: var(--primary-blue);
       color: white;
-      padding: 12px 15px;
+      padding: 12px 10px;
       text-align: left;
-      font-weight: 500;
-      position: sticky;
-      top: 0;
+      font-weight: 600;
+      font-size: 13px;
     }
     
     .table td {
-      padding: 10px 15px;
+      padding: 10px;
       border-bottom: 1px solid var(--border-color);
-      vertical-align: middle;
+      font-size: 13px;
     }
     
-    .table tr:nth-child(even) {
-      background-color: #f9f9f9;
+    .table tfoot td {
+      font-weight: 600;
+      background-color: #f8f9fa;
+    }
+    
+    .table tr:last-child td {
+      border-bottom: none;
     }
     
     .table tr:hover {
-      background-color: #f1f1f1;
+      background-color: var(--hover-color);
     }
     
-    .table-container {
-      margin-top: 20px;
-      overflow-x: auto;
-      border-radius: 4px;
-      border: 1px solid var(--border-color);
+    .text-end {
+      text-align: right;
     }
     
+    .loading {
+      text-align: center;
+      color: #6c757d;
+    }
+    
+    /* Rodapé com totais e paginação */
+    .table-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0 5px 0;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    
+    .pagination {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .btn-pagination {
+      background-color: var(--secondary-blue);
+      color: white;
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+    
+    .btn-pagination:hover {
+      background-color: #0069d9;
+    }
+    
+    .page-info {
+      font-size: 13px;
+      margin: 0 8px;
+      color: #555;
+    }
+    
+    /* Modal */
     .modal {
       display: none;
       position: fixed;
@@ -181,24 +489,17 @@
       height: 100%;
       overflow: auto;
       background-color: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(2px);
     }
     
     .modal-content {
       background-color: #fefefe;
       margin: 5% auto;
-      padding: 25px;
+      padding: 20px;
       border: none;
-      width: 50%;
+      width: 90%;
       max-width: 600px;
       border-radius: 8px;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-      animation: modalopen 0.3s;
-    }
-    
-    @keyframes modalopen {
-      from {opacity: 0; transform: translateY(-20px);}
-      to {opacity: 1; transform: translateY(0);}
     }
     
     .modal-header {
@@ -212,94 +513,97 @@
     
     .modal-header h2 {
       margin: 0;
-      color: var(--primary-color);
-      font-size: 20px;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     
     .close {
       color: #aaa;
-      font-size: 28px;
+      font-size: 24px;
       font-weight: bold;
       cursor: pointer;
-      transition: color 0.3s ease;
     }
     
     .close:hover {
-      color: var(--danger-color);
+      color: #000;
     }
     
     .form-group {
-      margin-bottom: 16px;
+      margin-bottom: 15px;
     }
     
     .form-group label {
       display: block;
-      margin-bottom: 6px;
+      margin-bottom: 5px;
       font-weight: 500;
-      color: var(--dark-color);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
     
     .form-group input {
       width: 100%;
-      padding: 8px 12px;
-      box-sizing: border-box;
+      padding: 8px 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-size: 13px;
     }
     
-    .search-container {
+    .form-actions {
       display: flex;
-      align-items: center;
-      margin-bottom: 20px;
+      justify-content: flex-end;
       gap: 10px;
-      flex-wrap: wrap;
-    }
-    
-    .report-button {
-      margin-left: auto;
-    }
-    
-    .pagination-controls {
-      display: flex;
-      justify-content: center;
-      align-items: center;
       margin-top: 20px;
-      gap: 10px;
     }
     
-    .pagination-controls button {
-      min-width: 80px;
-    }
-    
-    #page-info {
-      padding: 0 15px;
-      font-size: 14px;
-    }
-    
-    .loading {
-      text-align: center;
-      padding: 20px;
-      color: #666;
-    }
-    
+    /* Responsividade */
     @media (max-width: 768px) {
-      .modal-content {
-        width: 90%;
-        margin: 10% auto;
-      }
-      
       .header {
         flex-direction: column;
         align-items: flex-start;
+      }
+      
+      .header-actions {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .filter-row {
+        flex-direction: column;
+        align-items: stretch;
         gap: 10px;
       }
       
-      .search-container {
+      .filter-group {
+        width: 100%;
+        justify-content: space-between;
+      }
+      
+      .form-control {
+        flex-grow: 1;
+        max-width: 200px;
+      }
+      
+      .action-buttons {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+        justify-content: center;
+        margin-top: 5px;
+      }
+      
+      .table-footer {
         flex-direction: column;
         align-items: flex-start;
       }
       
-      .report-button {
-        margin-left: 0;
-        margin-top: 10px;
+      .modal-content {
+        width: 95%;
+        margin: 10% auto;
+        padding: 15px;
       }
     }
   </style>
@@ -308,11 +612,11 @@
   <div class="container">
     <div class="header">
       <h2><i class="fas fa-shopping-cart"></i> GESTÃO DE COMPRAS</h2>
-      <div>
-        <a href="https://script.google.com/macros/s/AKfycbyvVf1EMhWz7XyYXSt28J-SrcU38SXUighMyY9717yJhGQrru1FO9vKkAWDb4Yyu_2z/exec?p=movimentacoes_estoque" class="btn btn-nav" target="_blank">
+      <div class="header-actions">
+        <a href="https://wellingtonsidifran.github.io/temp-storage/movimentacoes_estoque" class="btn btn-nav" target="_blank">
           <i class="fas fa-exchange-alt"></i> Movimentações
         </a>
-        <a href="https://script.google.com/macros/s/AKfycbyvVf1EMhWz7XyYXSt28J-SrcU38SXUighMyY9717yJhGQrru1FO9vKkAWDb4Yyu_2z/exec?p=estoque_atual" class="btn btn-nav" target="_blank">
+        <a href="https://wellingtonsidifran.github.io/temp-storage/estoque_atual" class="btn btn-nav" target="_blank">
           <i class="fas fa-boxes"></i> Estoque
         </a>
         <button class="btn btn-primary" onclick="openAddModal()">
@@ -321,58 +625,75 @@
       </div>
     </div>
 
-    <div class="search-container">
-     
-      <input type="date" id="start-date" class="form-control" style="width: 160px;">
-      <input type="date" id="end-date" class="form-control" style="width: 160px;">
-      <button class="btn btn-primary" onclick="searchCompras()">
-        <i class="fas fa-search"></i> Buscar
-      </button>
-      <button class="btn btn-danger" onclick="clearSearch()">
-        <i class="fas fa-times"></i> Limpar
-      </button>
-      <button class="btn btn-report report-button" onclick="generateReport()">
-        <i class="fas fa-file-excel"></i> Relatório
-      </button>
+    <!-- Filtros em linha horizontal -->
+    <div class="filter-row">
+      <div class="filter-group">
+        <label for="start-date">Data Início:</label>
+        <input type="date" id="start-date" class="form-control">
+      </div>
+      
+      <div class="filter-group">
+        <label for="end-date">Data Fim:</label>
+        <input type="date" id="end-date" class="form-control">
+      </div>
+      
+      <div class="action-buttons">
+        <button class="btn btn-primary" onclick="searchCompras()">
+          <i class="fas fa-search"></i> Buscar
+        </button>
+        <button class="btn btn-danger" onclick="clearSearch()">
+          <i class="fas fa-times"></i> Limpar
+        </button>
+        <button class="btn btn-report" onclick="generateReport()">
+          <i class="fas fa-file-excel"></i> Relatório
+        </button>
+      </div>
     </div>
-
-    <div class="table-container">
-    <table class="table">
-        <thead>
+    
+    <!-- Área da tabela -->
+    <div class="table-area">
+      <div class="table-container">
+        <table class="table">
+          <thead>
             <tr>
-                <th>DATA</th>
-                <th>CÓDIGO</th>
-                <th>DESCRIÇÃO</th>
-                <th>QUANTIDADE</th>
-                <th>PREÇO UNIT.</th>
-                <th>TOTAL</th>
-                <th>FORNECEDOR</th>
+              <th>DATA</th>
+              <th>CÓDIGO</th>
+              <th>DESCRIÇÃO</th>
+              <th>QUANTIDADE</th>
+              <th>PREÇO UNIT.</th>
+              <th>TOTAL</th>
+              <th>FORNECEDOR</th>
             </tr>
-        </thead>
-        <tbody id="compras-table-body">
+          </thead>
+          <tbody id="compras-table-body">
             <tr>
-                <td colspan="7" class="loading">
-                    <i class="fas fa-spinner fa-spin"></i> Carregando dados...
-                </td>
+              <td colspan="7" class="loading">
+                <i class="fas fa-spinner fa-spin"></i> Carregando dados...
+              </td>
             </tr>
-        </tbody>
-        <tfoot>
+          </tbody>
+          <tfoot>
             <tr id="total-row">
-                <td colspan="5" class="text-end"><strong>Total Geral:</strong></td>
-                <td id="total-valor">R$ 0,00</td>
-                <td></td> </tr>
-        </tfoot>
-    </table>
- </div>
-
-    <div class="pagination-controls">
-      <button id="prev-page-btn" class="btn btn-primary" onclick="previousPage()" disabled>
-        <i class="fas fa-chevron-left"></i> Anterior
-      </button>
-      <span id="page-info">Página 1 de 1</span>
-      <button id="next-page-btn" class="btn btn-primary" onclick="nextPage()">
-        Próxima <i class="fas fa-chevron-right"></i>
-      </button>
+              <td colspan="5" class="text-end"><strong>Total Geral:</strong></td>
+              <td id="total-valor">R$ 0,00</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      
+      <!-- Rodapé com paginação -->
+      <div class="table-footer">
+        <div class="pagination">
+          <button id="prev-page-btn" class="btn btn-pagination" onclick="previousPage()" disabled>
+            <i class="fas fa-chevron-left"></i> Anterior
+          </button>
+          <span class="page-info" id="page-info">Página 1 de 1</span>
+          <button id="next-page-btn" class="btn btn-pagination" onclick="nextPage()">
+            Próxima <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -412,7 +733,7 @@
           <label for="fornecedor"><i class="fas fa-truck"></i> Fornecedor</label>
           <input type="text" id="fornecedor" class="form-control" required>
         </div>
-        <div class="form-group" style="text-align: right; margin-top: 25px;">
+        <div class="form-actions">
           <button type="button" class="btn btn-danger" onclick="closeAddModal()">
             <i class="fas fa-times"></i> Cancelar
           </button>
