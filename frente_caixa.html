@@ -784,79 +784,80 @@
 
 
     async function handleProductSearch() {
-        const searchTerm = elements.productSearch.value.trim();
-        if (!searchTerm) {
-          alert('Digite um código ou nome de produto para buscar.');
+      const searchTerm = elements.productSearch.value.trim();
+      const noProductFound = document.getElementById("noProductFound");
+    
+      // Oculta a mensagem sempre que iniciar uma nova busca
+      noProductFound.style.display = "none";
+    
+      if (!searchTerm) {
+        alert('Digite um código ou nome de produto para buscar.');
+        return;
+      }
+    
+      try {
+        const { data: entradas, error } = await client
+          .from('movimentacoes_estoque')
+          .select('codigo, produto, custo_unitario, qtde, data')
+          .or(`codigo.eq.${searchTerm},produto.ilike.%${searchTerm}%`)
+          .eq('tipo', 'Entrada')
+          .gt('qtde', 0)
+          .order('data', { ascending: true });
+    
+        if (error) throw error;
+    
+        if (entradas.length === 0) {
+          // Mostra a mensagem no lugar do alert
+          noProductFound.style.display = "block";
           return;
         }
-        
-        try {
-          // Busca por código ou nome, e apenas entradas com quantidade > 0
-          const { data: entradas, error } = await client
-            .from('movimentacoes_estoque')
-            .select('codigo, produto, custo_unitario, qtde, data')
-            .or(`codigo.eq.${searchTerm},produto.ilike.%${searchTerm}%`)
-            .eq('tipo', 'Entrada')
-            .gt('qtde', 0)
-            .order('data', { ascending: true }); // Ordena por data (FIFO)
-
-          if (error) throw error;
-
-          if (entradas.length === 0) {
-            alert('Produto não encontrado ou sem estoque disponível.');
-            return;
+    
+        // Agrupa entradas
+        const produtosDisponiveis = {};
+        entradas.forEach(entrada => {
+          const codigo = entrada.codigo;
+          if (!produtosDisponiveis[codigo]) {
+            produtosDisponiveis[codigo] = {
+              codigo: codigo,
+              nome: entrada.produto,
+              entradas: [],
+              estoqueTotal: 0
+            };
           }
-
-          // Agrupa entradas por produto para calcular estoque total
-          const produtosDisponiveis = {};
-          entradas.forEach(entrada => {
-            const codigo = entrada.codigo;
-            if (!produtosDisponiveis[codigo]) {
-              produtosDisponiveis[codigo] = {
-                codigo: codigo,
-                nome: entrada.produto,
-                entradas: [],
-                estoqueTotal: 0
-              };
-            }
-            
-            produtosDisponiveis[codigo].entradas.push({
-              custo_unitario: parseFloat(entrada.custo_unitario),
-              quantidade: parseFloat(entrada.qtde),
-              data: entrada.data
-            });
-            
-            produtosDisponiveis[codigo].estoqueTotal += parseFloat(entrada.qtde);
+          produtosDisponiveis[codigo].entradas.push({
+            custo_unitario: parseFloat(entrada.custo_unitario),
+            quantidade: parseFloat(entrada.qtde),
+            data: entrada.data
           });
-
-          // Pega o primeiro produto encontrado (se houver múltiplos com o mesmo nome)
-          const produtoKey = Object.keys(produtosDisponiveis)[0];
-          const produto = produtosDisponiveis[produtoKey];
-          
-          const quantity = parseInt(elements.productQuantity.value) || 1;
-
-          if (quantity <= 0) {
-            alert('Quantidade inválida.');
-            return;
-          }
-
-          if (produto.estoqueTotal < quantity) {
-            alert(`Estoque insuficiente. Disponível: ${produto.estoqueTotal}`);
-            return;
-          }
-
-          // Adiciona o produto ao carrinho usando o preço da primeira entrada (FIFO)
-          addProductToCart({
-            code: produto.codigo,
-            name: produto.nome,
-            price: produto.entradas[0].custo_unitario
-          }, quantity);
-
-        } catch (error) {
-          console.error("Erro ao buscar produto:", error);
-          alert('Erro ao buscar produto. Tente novamente.');
+          produtosDisponiveis[codigo].estoqueTotal += parseFloat(entrada.qtde);
+        });
+    
+        const produtoKey = Object.keys(produtosDisponiveis)[0];
+        const produto = produtosDisponiveis[produtoKey];
+        const quantity = parseInt(elements.productQuantity.value) || 1;
+    
+        if (quantity <= 0) {
+          alert('Quantidade inválida.');
+          return;
         }
+    
+        if (produto.estoqueTotal < quantity) {
+          alert(`Estoque insuficiente. Disponível: ${produto.estoqueTotal}`);
+          return;
+        }
+    
+        addProductToCart({
+          code: produto.codigo,
+          name: produto.nome,
+          price: produto.entradas[0].custo_unitario
+        }, quantity);
+    
+      } catch (error) {
+        console.error("Erro ao buscar produto:", error);
+        alert('Erro ao buscar produto. Tente novamente.');
       }
+    }
+
     
     //*************************************************************************
 
