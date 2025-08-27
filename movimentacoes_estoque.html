@@ -1,79 +1,319 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Movimentações de Estoque</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <?!= HtmlService.createHtmlOutputFromFile('styles_pagamentos').getContent(); ?>
-  </head>
-  <body>
+  <style>
+    :root {
+      --primary-blue: #3498db;
+      --secondary-blue: #007bff;
+      --dark-gray: #6c757d;
+      --light-gray: #f4f4f4;
+      --white: #ffffff;
+      --border-color: #ddd;
+      --hover-color: #f5f5f5;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: var(--light-gray);
+      color: #333;
+      line-height: 1.4;
+      padding: 15px;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: var(--white);
+      border-radius: 8px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: var(--primary-blue);
+      padding: 15px 20px;
+      color: white;
+    }
+    
+    .header h2 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+    
+    /* Filtros compactos em linha */
+    .filter-row {
+      display: flex;
+      align-items: center;
+      padding: 15px 20px;
+      background: #f9f9f9;
+      border-bottom: 1px solid var(--border-color);
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .filter-group label {
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    
+    .form-control {
+      padding: 8px 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-size: 13px;
+      min-width: 130px;
+    }
+    
+    .btn {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    
+    .btn-filter {
+      background-color: var(--dark-gray);
+      color: white;
+    }
+    
+    .btn-filter:hover {
+      background-color: #5a6268;
+    }
+    
+    .btn-export {
+      background-color: #28a745;
+      color: white;
+    }
+    
+    .btn-export:hover {
+      background-color: #218838;
+    }
+    
+    /* Área da tabela */
+    .table-area {
+      padding: 0 20px 15px 20px;
+    }
+    
+    .table-container {
+      overflow-x: auto;
+      margin-top: 15px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+    }
+    
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 800px;
+    }
+    
+    .table th {
+      background-color: var(--primary-blue);
+      color: white;
+      padding: 12px 10px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    
+    .table td {
+      padding: 10px;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 13px;
+    }
+    
+    .table tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .table tr:hover {
+      background-color: var(--hover-color);
+    }
+    
+    /* Rodapé com totais e paginação */
+    .table-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0 5px 0;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    
+    .total-sum {
+      font-weight: 600;
+      font-size: 13px;
+      color: #333;
+    }
+    
+    .pagination {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .btn-pagination {
+      background-color: var(--secondary-blue);
+      color: white;
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+    
+    .btn-pagination:hover {
+      background-color: #0069d9;
+    }
+    
+    .page-info {
+      font-size: 13px;
+      margin: 0 8px;
+      color: #555;
+    }
+    
+    /* Responsividade */
+    @media (max-width: 768px) {
+      .filter-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+      
+      .filter-group {
+        width: 100%;
+        justify-content: space-between;
+      }
+      
+      .form-control {
+        flex-grow: 1;
+        max-width: 200px;
+      }
+      
+      .action-buttons {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+        justify-content: center;
+        margin-top: 5px;
+      }
+      
+      .table-footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
   <div class="container">
     <div class="header">
       <h2>MOVIMENTAÇÕES DE ESTOQUE</h2>
     </div>
-    <div class="filter-container">
-      <div>
-        <div class="filter-group">
-          <label for="data-inicio">Data Início:</label>
-          <input type="date" id="data-inicio" class="form-control">
-        </div>
-        <div class="filter-group">
-          <label for="data-fim">Data Fim:</label>
-          <input type="date" id="data-fim" class="form-control">
-        </div>
-        <div class="filter-group">
-          <label for="tipo-mov">Tipo:</label>
-          <select id="tipo-mov" class="form-control">
-            <option value="">Todos</option>
-            <option value="entrada">Entrada</option>
-            <option value="saida">Saída</option>
-          </select>
-        </div>
+    
+    <!-- Filtros em linha horizontal -->
+    <div class="filter-row">
+      <div class="filter-group">
+        <label for="data-inicio">Data Início:</label>
+        <input type="date" id="data-inicio" class="form-control">
+      </div>
+      
+      <div class="filter-group">
+        <label for="data-fim">Data Fim:</label>
+        <input type="date" id="data-fim" class="form-control">
+      </div>
+      
+      <div class="filter-group">
+        <label for="tipo-mov">Tipo:</label>
+        <select id="tipo-mov" class="form-control">
+          <option value="">Todos</option>
+          <option value="entrada">Entrada</option>
+          <option value="saida">Saída</option>
+        </select>
+      </div>
+      
+      <div class="action-buttons">
         <button class="btn btn-filter" onclick="applyFilters()">
           <i class="fas fa-search"></i> Aplicar
         </button>
         <button class="btn btn-export" onclick="exportToXLSX()">
-          <i class="fas fa-file-excel"></i> Exportar Excel
+          <i class="fas fa-file-excel"></i> Exportar
         </button>
       </div>
-      <div class="pagination">
-        <button class="btn btn-primary" onclick="goToFirstPage()"><i class="fas fa-angle-double-left"></i></button>
-        <button class="btn btn-primary" onclick="prevPage()"><i class="fas fa-angle-left"></i></button>
-        <span id="page-info"></span>
-        <button class="btn btn-primary" onclick="nextPage()"><i class="fas fa-angle-right"></i></button>
-        <button class="btn btn-primary" onclick="goToLastPage()"><i class="fas fa-angle-double-right"></i></button>
+    </div>
+    
+    <!-- Área da tabela - mais próxima dos filtros -->
+    <div class="table-area">
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Código Item</th>
+              <th>Data</th>
+              <th>Produto</th>
+              <th>Tipo</th>
+              <th>Qtde</th>
+              <th>Custo Unitario</th>
+              <th>Origem</th>
+            </tr>
+          </thead>
+          <tbody id="movimentacoes-table-body">
+            <tr>
+              <td colspan="7">Carregando dados...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Rodapé com totais e paginação lado a lado -->
+      <div class="table-footer">
+        <div class="total-sum" id="total-sum">Custo Unitário Total: R$ 0,00</div>
+        
+        <div class="pagination">
+          <button class="btn btn-pagination" onclick="goToFirstPage()">
+            <i class="fas fa-angle-double-left"></i>
+          </button>
+          <button class="btn btn-pagination" onclick="prevPage()">
+            <i class="fas fa-angle-left"></i>
+          </button>
+          <span class="page-info" id="page-info">Página 1 de 1</span>
+          <button class="btn btn-pagination" onclick="nextPage()">
+            <i class="fas fa-angle-right"></i>
+          </button>
+          <button class="btn btn-pagination" onclick="goToLastPage()">
+            <i class="fas fa-angle-double-right"></i>
+          </button>
+        </div>
       </div>
     </div>
-    <div id="table-container">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Código Item</th>
-            <th>Data</th>
-            <th>Produto</th>
-            <th>Tipo</th>
-            <th>Qtde</th>
-            <th>Custo Unitario</th>
-            <th>Origem</th>
-          </tr>
-        </thead>
-        <tbody id="movimentacoes-table-body">
-          <tr>
-            <td colspan="7">Carregando dados...</td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="total-sum" id="total-sum">Custo Uniário Tota: R$ 0,00</div>
-    </div>
-   </div>
+  </div>
 
    <script>
-    const supabaseUrl = 'https://bhkigsipuxqgpafikglm.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJoa2lnc2lwdXhxZ3BhZmlrZ2xtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4MDE4NDMsImV4cCI6MjA3MTM3Nzg0M30.IBHX2UHeP7foTo96MFUAZUHc40O1gyNBeKqolhhceXM';
-    const client  = supabase.createClient(supabaseUrl, supabaseKey);
-
+      const supabaseUrl = 'https://bhkigsipuxqgpafikglm.supabase.co';
+      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJoa2lnc2lwdXhxZ3BhZmlrZ2xtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4MDE4NDMsImV4cCI6MjA3MTM3Nzg0M30.IBHX2UHeP7foTo96MFUAZUHc40O1gyNBeKqolhhceXM';
+      const client  = supabase.createClient(supabaseUrl, supabaseKey);
     let allData = [];
     let currentPage = 1;
     const rowsPerPage = 100;
