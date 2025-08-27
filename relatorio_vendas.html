@@ -13,55 +13,171 @@
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     
-    <style>
-        .card-header {
-            background-color: #3498db;
-            border-bottom: 1px solid #e3e6f0;
-            padding: 0.75rem 1.25rem !important;
-            margin-bottom: 0;
-        }
-        .card-header h5 {
-            color: #fff;
-            margin-bottom: 0;
-        }
-        .card-header button {
-            margin-left: 10px;
-        }
-        .card-body {
-            padding-top: 15px;
-        }
-        .total-display {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #2e59d9;
-            background-color: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
+   <style>
+    :root {
+        --primary-blue: #3498db;
+        --secondary-blue: #007bff;
+        --dark-gray: #6c757d;
+        --light-gray: #f4f4f4;
+        --white: #ffffff;
+        --border-color: #ddd;
+        --hover-color: #f5f5f5;
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        font-size: 13px;
+    }
+
+    .card-header {
+        background-color: var(--primary-blue);
+        padding: 15px 20px;
+        color: white;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-header h5 {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 0;
+    }
+
+    .card-header button {
+        margin-left: 10px;
+    }
+
+    .card-body {
+        padding: 15px 20px;
+    }
+
+    .filter-section {
+        background-color: #f9f9f9;
+        padding: 15px 20px;
+        margin-bottom: 15px;
+        border-radius: 6px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .filter-section label {
+        font-size: 13px;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    .form-control {
+        padding: 8px 10px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        font-size: 13px;
+    }
+
+    .btn {
+        padding: 8px 14px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+
+    .btn-primary {
+        background-color: var(--dark-gray);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #5a6268;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+        margin-top: 15px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 800px;
+    }
+
+    table th {
+        background-color: var(--primary-blue);
+        color: white;
+        padding: 12px 10px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    table td {
+        padding: 10px;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 13px;
+    }
+
+    table tr:last-child td {
+        border-bottom: none;
+    }
+
+    table tr:hover {
+        background-color: var(--hover-color);
+    }
+
+    .total-display {
+        font-size: 13px;
+        font-weight: 600;
+        color: #333;
+        background-color: #f8f9fa;
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 10px;
+        text-align: right;
+    }
+
+    .status-finalizada {
+        color: #1cc88a;
+        font-weight: bold;
+        font-size: 13px;
+    }
+
+    .status-cancelada {
+        color: #e74a3b;
+        font-weight: bold;
+        font-size: 13px;
+    }
+
+    .status-pendente {
+        color: #f6c23e;
+        font-weight: bold;
+        font-size: 13px;
+    }
+
+    @media (max-width: 768px) {
         .filter-section {
-            background-color: #f8f9fa;
-            padding: 10px !important;
-            margin-bottom: 15px !important;
-            border-radius: 5px;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
         }
-        .table-responsive {
-            overflow-x: auto;
-            margin-top: 15px;
+
+        .form-control {
+            flex-grow: 1;
+            max-width: 200px;
         }
-        .status-finalizada {
-            color: #1cc88a;
-            font-weight: bold;
-        }
-        .status-cancelada {
-            color: #e74a3b;
-            font-weight: bold;
-        }
-        .status-pendente {
-            color: #f6c23e;
-            font-weight: bold;
-        }
-    </style>
+    }
+</style>
+
 </head>
 <body>
     <div class="container-fluid mt-3">
@@ -419,3 +535,4 @@
     </script>
 </body>
 </html>
+
