@@ -1062,10 +1062,8 @@
 
 //*************************************************************************
 
-// A função applyFIFOAndRegisterExit agora está completa e executa a lógica de registro e atualização.
 async function applyFIFOAndRegisterExit(codigoBarras, quantidadeVendida, dataVenda) {
     try {
-        // Buscar lotes de ENTRADA ordenados por data (mais antigo primeiro)
         const { data: lotesDisponiveis, error } = await client
             .from('movimentacoes_estoque')
             .select('id, qtde, custo_unitario, produto, data')
@@ -1080,16 +1078,14 @@ async function applyFIFOAndRegisterExit(codigoBarras, quantidadeVendida, dataVen
         }
 
         let quantidadeRestante = quantidadeVendida;
-        const lotesUtilizados = [];
+        let custoUnitario = 0;
 
-        // Aplicar lógica FIFO e processar cada lote
         for (const lote of lotesDisponiveis) {
             if (quantidadeRestante <= 0) break;
 
             const quantidadeUtilizada = Math.min(lote.qtde, quantidadeRestante);
 
-            // Registrar a saída na tabela estoque_saida
-            const { error: saidaError } = await client
+            await client
                 .from('estoque_saida')
                 .insert({
                     codigo: codigoBarras,
@@ -1101,39 +1097,21 @@ async function applyFIFOAndRegisterExit(codigoBarras, quantidadeVendida, dataVen
                     origem: 'Venda',
                 });
 
-            if (saidaError) {
-                console.error("Erro ao registrar saída de estoque:", saidaError.message);
-                throw saidaError;
-            }
+            custoUnitario = lote.custo_unitario; // Pega o custo unitário do lote atual
 
-            // Adicionar lote ao array de utilizados
-            lotesUtilizados.push({
-                quantidade: quantidadeUtilizada,
-                custo_unitario: lote.custo_unitario,
-            });
-
-            // Diminuir a quantidade restante a ser vendida
             quantidadeRestante -= quantidadeUtilizada;
 
-            // Atualizar a quantidade no lote de entrada
-            const novaQuantidade = lote.qtde - quantidadeUtilizada;
-            const { error: updateError } = await client
+            await client
                 .from('movimentacoes_estoque')
-                .update({ qtde: novaQuantidade })
+                .update({ qtde: lote.qtde - quantidadeUtilizada })
                 .eq('id', lote.id);
-
-            if (updateError) {
-                console.error("Erro ao atualizar lote de entrada:", updateError.message);
-                throw updateError;
-            }
         }
 
         if (quantidadeRestante > 0) {
             console.warn(`Aviso: Falta de estoque para ${codigoBarras}. Quantidade não atendida: ${quantidadeRestante}`);
         }
 
-        return { lotes: lotesUtilizados, faltaEstoque: quantidadeRestante };
-
+        return custoUnitario; // Retorna o custo unitário do lote utilizado
     } catch (error) {
         console.error("Erro na função applyFIFOAndRegisterExit:", error.message);
         throw error;
@@ -1167,7 +1145,14 @@ async function registerSale(items, paymentMethod, discount = 0) {
     const valorTaxa = totalSemTaxa * (taxa / 100);
     const totalComTaxa = totalSemTaxa + valorTaxa;
 
-    // 3. Registrar itens da venda
+    // 3. Aplicar FIFO e obter custos unitários
+    const custosPorItem = {};
+    for (const item of items) {
+        const custoUnitario = await applyFIFOAndRegisterExit(item.code, parseFloat(item.quantity), now);
+        custosPorItem[item.code] = custoUnitario; // Não é necessário parseFloat
+    }
+
+    // 4. Registrar itens da venda com custo unitário
     const itemRows = items.map(item => ({
         codigo: item.code,
         id_venda: saleId,
@@ -1175,23 +1160,20 @@ async function registerSale(items, paymentMethod, discount = 0) {
         item: `${item.name} (${item.quantity}x)`,
         quantidade: parseFloat(item.quantity),
         preco_unitario: parseFloat(item.price),
+        custo_unitario: custosPorItem[item.code] || 0, // Valor já é numérico
         total: (parseFloat(item.price) * parseFloat(item.quantity)).toFixed(2),
         valor_desconto: ((parseFloat(item.price) * parseFloat(item.quantity)) / subtotal * totalDiscount).toFixed(2),
         status: 'FINALIZADA',
         metodo_pagamento: paymentMethod
     }));
 
+    // 5. Gravar itens da venda
     const { error: itemsError } = await client
         .from('itens_venda')
         .insert(itemRows);
     if (itemsError) throw itemsError;
 
-    // 4. Aplicar FIFO
-    for (const item of items) {
-        await applyFIFOAndRegisterExit(item.code, parseFloat(item.quantity), now);
-    }
-
-    // 5. Registrar pagamento
+    // 6. Registrar pagamento
     const { error: paymentError } = await client
         .from('pagamentos')
         .insert([{
@@ -1204,9 +1186,8 @@ async function registerSale(items, paymentMethod, discount = 0) {
         }]);
     if (paymentError) throw paymentError;
 
-    // 6. Imprimir cupom automaticamente
+    // 7. Imprimir cupom automaticamente
     await printReceipt(saleId, items, totalComTaxa.toFixed(2), paymentMethod);
-
     return saleId;
 }
 
