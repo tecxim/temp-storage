@@ -54,7 +54,7 @@
   <script>
     const supabaseUrl = 'https://bhkigsipuxqgpafikglm.supabase.co'; 
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJoa2lnc2lwdXhxZ3BhZmlrZ2xtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4MDE4NDMsImV4cCI6MjA3MTM3Nzg0M30.IBHX2UHeP7foTo96MFUAZUHc40O1gyNBeKqolhhceXM'; 
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    const client = supabase.createClient(supabaseUrl, supabaseKey);
     // Função para gerar um salt aleatório
     function generateSalt() {
       return CryptoJS.lib.WordArray.random(16).toString();
@@ -70,7 +70,7 @@
 
     // A função de cadastro fica assim:
     async function cadastrarUsuario(codigo, nome, senha) {
-      const { data, error } = await supabase.rpc('cadastrar_usuario', {
+      const { data, error } = await client.rpc('cadastrar_usuario', {
         codigo_in: codigo,
         nome_in: nome,
         senha_in: senha
@@ -107,6 +107,7 @@
   </script>
 </body>
 </html>
+
 
 
 
