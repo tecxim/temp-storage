@@ -7,7 +7,6 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <style>
     body { background-color: #f8f9fa; }
     .card { border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
@@ -52,37 +51,21 @@
   </div>
 
   <script>
-     // Configuração do Supabase
+    // Configuração do Supabase
     const supabaseUrl = 'https://bhkigsipuxqgpafikglm.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJoa2lnc2lwdXhxZ3BhZmlrZ2xtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4MDE4NDMsImV4cCI6MjA3MTM3Nzg0M30.IBHX2UHeP7foTo96MFUAZUHc40O1gyNBeKqolhhceXM';
-    const client = supabase.createClient(supabaseUrl, supabaseKey);
-
-
-    // Função para gerar um salt aleatório
-    function generateSalt() {
-      return CryptoJS.lib.WordArray.random(16).toString();
-    }
-
-    // Função para criptografar a senha com o salt
-    function encryptPassword(password, salt) {
-      return CryptoJS.PBKDF2(password, CryptoJS.enc.Hex.parse(salt), {
-        keySize: 256/32,
-        iterations: 1000
-      }).toString();
-    }
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
     // Função para cadastrar usuário
     async function cadastrarUsuario(codigo, nome, senha) {
-      const salt = generateSalt();
-      const senhaCriptografada = encryptPassword(senha, salt);
-
-      const { data, error } = await client
+      // Insere diretamente sem criptografar (você vai tratar isso no backend ou Supabase)
+      const { data, error } = await supabase
         .from('usuarios')
         .insert([{
           codigo: codigo,
           nome: nome,
-          senha: senhaCriptografada,
-          salt: salt
+          senha: senha, // Aqui você pode enviar a senha em texto puro e tratar no Supabase
+          salt: ''      // Ou gerar um salt no backend
         }]);
 
       if (error) throw error;
@@ -113,6 +96,7 @@
   </script>
 </body>
 </html>
+
 
 
 
