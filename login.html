@@ -51,36 +51,45 @@
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
     // Função para validar login
-    async function validarLogin(nome, senha) {
-      const { data, error } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('nome', nome)
-        .eq('senha', senha)
-        .limit(1);
+  async function validarLogin(nome, senha) {
+    const { data, error } = await supabase
+      .from('usuarios')
+      .select('*')
+      .eq('nome', nome)
+      .limit(1);
 
-      if (error) throw error;
-      return data[0] || null;
-    }
+    if (error) throw error;
 
-    // Evento de login
-    document.getElementById('formLogin').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const nome = document.getElementById('nomeLogin').value;
-      const senha = document.getElementById('senhaLogin').value;
+    const user = data[0];
+    if (!user) return null;
 
-      try {
-        const user = await validarLogin(nome, senha);
-        if (user) {
-          alert("Login realizado com sucesso!");
-          window.location.href = 'cadastro.html'; // Redireciona para a página de cadastro
-        } else {
-          alert("Usuário ou senha inválidos");
-        }
-      } catch (error) {
-        alert("Erro ao validar login: " + error.message);
+    // Verifica a senha usando a função RPC
+    const { data: isValid, error: verifyError } = await supabase
+      .rpc('verify_password', { user_password: senha, stored_hash: user.senha });
+
+    if (verifyError || !isValid) return null;
+    return user;
+  }
+
+  document.getElementById('formLogin').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nome = document.getElementById('nomeLogin').value;
+    const senha = document.getElementById('senhaLogin').value;
+
+    try {
+      const user = await validarLogin(nome, senha);
+      if (user) {
+        alert("Login realizado com sucesso!");
+        window.location.href = 'cadastro.html';
+      } else {
+        alert("Usuário ou senha inválidos");
       }
-    });
+    } catch (error) {
+      alert("Erro ao validar login: " + error.message);
+    }
+  });
+
   </script>
 </body>
 </html>
+
