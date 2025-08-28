@@ -68,23 +68,19 @@
       }).toString();
     }
 
-    // Função para cadastrar usuário
     async function cadastrarUsuario(codigo, nome, senha) {
-      const salt = generateSalt();
-      const senhaCriptografada = encryptPassword(senha, salt);
-
-      const { data, error } = await client
-        .from('usuarios')
-        .insert([{
-          codigo: codigo,
-          nome: nome,
-          senha: senhaCriptografada,
-          salt: salt
-        }]);
-
-      if (error) throw error;
+      const { data, error } = await supabase.rpc('cadastrar_usuario', {
+        codigo_in: codigo,
+        nome_in: nome,
+        senha_in: senha
+      });
+    
+      if (error) {
+        throw error;
+      }
       return data;
     }
+
 
     // Gerar código automático
     document.addEventListener('DOMContentLoaded', function() {
@@ -110,6 +106,7 @@
   </script>
 </body>
 </html>
+
 
 
 
