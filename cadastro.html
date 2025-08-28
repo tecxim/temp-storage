@@ -12,6 +12,24 @@
     body { background-color: #f8f9fa; }
     .card { border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
   </style>
+
+  <script type="module">
+  import { supabase, login } from './supabase.js'
+
+  document.getElementById('formLogin')?.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const email = document.getElementById('codigoLogin').value
+    const senha = document.getElementById('senhaLogin').value
+
+    try {
+      await login(email, senha)
+      window.location.href = 'cadastro.html'
+    } catch (error) {
+      alert('Erro ao fazer login: ' + error.message)
+    }
+  })
+</script>
+
 </head>
 <body>
   <div class="container mt-5">
@@ -73,5 +91,6 @@
   </script>
 </body>
 </html>
+
 
 
