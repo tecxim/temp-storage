@@ -1,37 +1,44 @@
+const supabaseUrl = 'https://bhkigsipuxqgpafikglm.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJoa2lnc2lwdXhxZ3BhZmlrZ2xtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4MDE4NDMsImV4cCI6MjA3MTM3Nzg0M30.IBHX2UHeP7foTo96MFUAZUHc40O1gyNBeKqolhhceXM';
+const client = supabase.createClient(supabaseUrl, supabaseKey);
+
 // Verificar se o usuário está logado ao carregar a página
-document.addEventListener('DOMContentLoaded', function() {
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
+document.addEventListener('DOMContentLoaded', async function() {
+    // Verificar sessão ativa no Supabase
+    const { data: { user } } = await supabase.auth.getUser();
     const currentPage = window.location.pathname.split('/').pop();
 
-    if (currentPage !== 'login.html' && !isLoggedIn) {
+    if (currentPage !== 'login.html' && !user) {
         window.location.href = 'login.html';
     }
 });
 
-// Função para fazer login
+// Função para fazer login com Supabase
 document.getElementById('formLogin')?.addEventListener('submit', async function(e) {
     e.preventDefault();
-    const codigo = document.getElementById('codigoLogin').value;
+    const email = document.getElementById('codigoLogin').value; // Substitua 'codigoLogin' por 'emailLogin' no HTML
     const senha = document.getElementById('senhaLogin').value;
 
-    // Simular autenticação (substituir por chamada real ao backend)
-    const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ codigo, senha })
+    // Autenticar com Supabase
+    const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: senha,
     });
 
-    const result = await response.json();
-    if (result.success) {
-        localStorage.setItem('isLoggedIn', 'true');
-        window.location.href = 'cadastro.html';
+    if (error) {
+        alert('Erro ao fazer login: ' + error.message);
     } else {
-        alert('Código ou senha incorretos!');
+        window.location.href = 'cadastro.html';
     }
 });
 
-// Função para fazer logout
+// Função para fazer logout com Supabase
 function logout() {
-    localStorage.removeItem('isLoggedIn');
-    window.location.href = 'login.html';
+    supabase.auth.signOut()
+        .then(() => {
+            window.location.href = 'login.html';
+        })
+        .catch((error) => {
+            alert('Erro ao fazer logout: ' + error.message);
+        });
 }
