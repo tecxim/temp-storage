@@ -7,43 +7,15 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <style>
     body { background-color: #f8f9fa; }
     .card { border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
   </style>
-
-  <script type="module">
-  import { cadastrarUsuario } from './supabase.js'
-  
-  document.addEventListener('DOMContentLoaded', function() {
-    // Gerar código automático
-    const codigoGerado = document.getElementById('codigoGerado')
-    codigoGerado.value = "000" + Math.floor(Math.random() * 1000)
-  })
-  
-  document.getElementById('formCadastro').addEventListener('submit', async (e) => {
-    e.preventDefault()
-    const nome = document.getElementById('nome').value
-    const senha = document.getElementById('senha').value
-    const codigo = document.getElementById('codigoGerado').value
-  
-    try {
-      await cadastrarUsuario(codigo, nome, senha)
-      alert("Usuário cadastrado com sucesso! Código: " + codigo)
-      document.getElementById('formCadastro').reset()
-    } catch (error) {
-      alert("Erro ao cadastrar: " + error.message)
-    }
-  })
-  </script>
-  
-
 </head>
 <body>
   <div class="container mt-5">
     <div class="row justify-content-center">
-      <div class="col-md-4">
+      <div class="col-md-6">
         <div class="card">
           <div class="card-header bg-primary text-white">
             <i class="bi bi-box-arrow-in-right me-2"></i>Login
@@ -72,20 +44,43 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    document.getElementById('formLogin').addEventListener('submit', function(e) {
+    // Configuração do Supabase
+    const supabaseUrl = 'https://bhkigsipuxqgpafikglm.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJoa2lnc2lwdXhxZ3BhZmlrZ2xtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4MDE4NDMsImV4cCI6MjA3MTM3Nzg0M30.IBHX2UHeP7foTo96MFUAZUHc40O1gyNBeKqolhhceXM';
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Função para validar login
+    async function validarLogin(nome, senha) {
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('nome', nome)
+        .eq('senha', senha)
+        .limit(1);
+
+      if (error) throw error;
+      return data[0] || null;
+    }
+
+    // Evento de login
+    document.getElementById('formLogin').addEventListener('submit', async (e) => {
       e.preventDefault();
       const nome = document.getElementById('nomeLogin').value;
       const senha = document.getElementById('senhaLogin').value;
 
-      // Simular autenticação (substituir por chamada real ao Supabase)
-      console.log("Tentando logar com:", nome, senha);
-      alert("Login simulado. Integre com o Supabase para autenticação real.");
+      try {
+        const user = await validarLogin(nome, senha);
+        if (user) {
+          alert("Login realizado com sucesso!");
+          window.location.href = 'cadastro.html'; // Redireciona para a página de cadastro
+        } else {
+          alert("Usuário ou senha inválidos");
+        }
+      } catch (error) {
+        alert("Erro ao validar login: " + error.message);
+      }
     });
   </script>
 </body>
 </html>
-
-
-
