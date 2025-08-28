@@ -68,6 +68,7 @@
       }).toString();
     }
 
+    // A função de cadastro fica assim:
     async function cadastrarUsuario(codigo, nome, senha) {
       const { data, error } = await supabase.rpc('cadastrar_usuario', {
         codigo_in: codigo,
@@ -106,6 +107,7 @@
   </script>
 </body>
 </html>
+
 
 
 
