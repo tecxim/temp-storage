@@ -14,21 +14,26 @@
   </style>
 
   <script type="module">
-  import { supabase, login } from './supabase.js'
-
-  document.getElementById('formLogin')?.addEventListener('submit', async (e) => {
+  import { validarLogin } from './supabase.js'
+  
+  document.getElementById('formLogin').addEventListener('submit', async (e) => {
     e.preventDefault()
-    const email = document.getElementById('codigoLogin').value
+    const nome = document.getElementById('nomeLogin').value
     const senha = document.getElementById('senhaLogin').value
-
+  
     try {
-      await login(email, senha)
-      window.location.href = 'cadastro.html'
+      const user = await validarLogin(nome, senha)
+      if (user) {
+        alert("Login realizado com sucesso!")
+        window.location.href = 'cadastro.html'
+      } else {
+        alert("Usuário ou senha inválidos")
+      }
     } catch (error) {
-      alert('Erro ao fazer login: ' + error.message)
+      alert("Erro ao validar login: " + error.message)
     }
   })
-</script>
+  </script>
 
 </head>
 <body>
@@ -91,6 +96,7 @@
   </script>
 </body>
 </html>
+
 
 
 
