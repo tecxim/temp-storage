@@ -57,37 +57,39 @@
     const client = supabase.createClient(supabaseUrl, supabaseKey);
 
     // Função para cadastrar usuário
-    async function cadastrarUsuario(codigo, nome, senha) {
-      const { data, error } = await client
-        .from('usuarios')
-        .insert([{ codigo, nome, senha }]);
+      async function cadastrarUsuario(codigo, nome, senha) {
+    const { data, error } = await supabase
+      .from('usuarios')
+      .insert([{
+        codigo: codigo,
+        nome: nome,
+        senha: `crypt('${senha}', gen_salt('bf'))` // Criptografa no servidor
+      }]);
 
-      if (error) throw error;
-      return data;
+    if (error) throw error;
+    return data;
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('codigoGerado').value = "000" + Math.floor(Math.random() * 10);
+  });
+
+  document.getElementById('formCadastro').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const nome = document.getElementById('nome').value;
+    const senha = document.getElementById('senha').value;
+    const codigo = document.getElementById('codigoGerado').value;
+
+    try {
+      await cadastrarUsuario(codigo, nome, senha);
+      alert("Usuário cadastrado com sucesso!");
+      window.location.href = 'login.html';
+    } catch (error) {
+      alert("Erro ao cadastrar usuário: " + error.message);
     }
-
-    // Gerar código automático
-    document.addEventListener('DOMContentLoaded', function() {
-      const codigoGerado = document.getElementById('codigoGerado');
-      codigoGerado.value = "000" + Math.floor(Math.random() * 10);
-    });
-
-    // Evento de cadastro
-    document.getElementById('formCadastro').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const nome = document.getElementById('nome').value;
-      const senha = document.getElementById('senha').value;
-      const codigo = document.getElementById('codigoGerado').value;
-
-      try {
-        await cadastrarUsuario(codigo, nome, senha);
-        alert("Usuário cadastrado com sucesso! Código gerado: " + codigo);
-        window.location.href = 'login.html'; // Redireciona para a página de login
-      } catch (error) {
-        alert("Erro ao cadastrar usuário: " + error.message);
-      }
-    });
+  });
   </script>
 </body>
 </html>
+
 
