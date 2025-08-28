@@ -54,12 +54,12 @@
     // Configuração do Supabase
     const supabaseUrl = 'https://bhkigsipuxqgpafikglm.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJoa2lnc2lwdXhxZ3BhZmlrZ2xtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4MDE4NDMsImV4cCI6MjA3MTM3Nzg0M30.IBHX2UHeP7foTo96MFUAZUHc40O1gyNBeKqolhhceXM';
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    const client = supabase.createClient(supabaseUrl, supabaseKey);
 
     // Função para cadastrar usuário
     async function cadastrarUsuario(codigo, nome, senha) {
       // Insere diretamente sem criptografar (você vai tratar isso no backend ou Supabase)
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('usuarios')
         .insert([{
           codigo: codigo,
@@ -96,6 +96,7 @@
   </script>
 </body>
 </html>
+
 
 
 
