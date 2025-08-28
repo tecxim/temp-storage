@@ -14,21 +14,30 @@
   </style>
 
   <script type="module">
-  import { supabase, login } from './supabase.js'
-
-  document.getElementById('formLogin')?.addEventListener('submit', async (e) => {
+  import { cadastrarUsuario } from './supabase.js'
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    // Gerar código automático
+    const codigoGerado = document.getElementById('codigoGerado')
+    codigoGerado.value = "000" + Math.floor(Math.random() * 1000)
+  })
+  
+  document.getElementById('formCadastro').addEventListener('submit', async (e) => {
     e.preventDefault()
-    const email = document.getElementById('codigoLogin').value
-    const senha = document.getElementById('senhaLogin').value
-
+    const nome = document.getElementById('nome').value
+    const senha = document.getElementById('senha').value
+    const codigo = document.getElementById('codigoGerado').value
+  
     try {
-      await login(email, senha)
-      window.location.href = 'cadastro.html'
+      await cadastrarUsuario(codigo, nome, senha)
+      alert("Usuário cadastrado com sucesso! Código: " + codigo)
+      document.getElementById('formCadastro').reset()
     } catch (error) {
-      alert('Erro ao fazer login: ' + error.message)
+      alert("Erro ao cadastrar: " + error.message)
     }
   })
-</script>
+  </script>
+  
 
 </head>
 <body>
@@ -77,5 +86,6 @@
   </script>
 </body>
 </html>
+
 
 
