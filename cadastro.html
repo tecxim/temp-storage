@@ -13,40 +13,7 @@
   </style>
 </head>
 <body>
-  <!-- Formulário de Login -->
-  <div class="container mt-5" id="loginContainer">
-    <div class="row justify-content-center">
-      <div class="col-md-6">
-        <div class="card">
-          <div class="card-header bg-primary text-white">
-            <i class="bi bi-box-arrow-in-right me-2"></i>Login
-          </div>
-          <div class="card-body">
-            <form id="formLogin">
-              <div class="mb-3">
-                <label for="nomeLogin" class="form-label">
-                  <i class="bi bi-person-fill me-2"></i>Nome
-                </label>
-                <input type="text" class="form-control" id="nomeLogin" required>
-              </div>
-              <div class="mb-3">
-                <label for="senhaLogin" class="form-label">
-                  <i class="bi bi-lock-fill me-2"></i>Senha
-                </label>
-                <input type="password" class="form-control" id="senhaLogin" required>
-              </div>
-              <button type="submit" class="btn btn-primary w-100">
-                <i class="bi bi-box-arrow-in-right me-2"></i>Entrar
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Formulário de Cadastro -->
-  <div class="container mt-5" id="cadastroContainer" style="display: none;">
+  <div class="container mt-5">
     <div class="row justify-content-center">
       <div class="col-md-6">
         <div class="card">
@@ -89,19 +56,6 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJoa2lnc2lwdXhxZ3BhZmlrZ2xtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4MDE4NDMsImV4cCI6MjA3MTM3Nzg0M30.IBHX2UHeP7foTo96MFUAZUHc40O1gyNBeKqolhhceXM';
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    // Função para validar login
-    async function validarLogin(nome, senha) {
-      const { data, error } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('nome', nome)
-        .eq('senha', senha)
-        .limit(1);
-
-      if (error) throw error;
-      return data[0] || null;
-    }
-
     // Função para cadastrar usuário
     async function cadastrarUsuario(codigo, nome, senha) {
       const { data, error } = await supabase
@@ -111,26 +65,6 @@
       if (error) throw error;
       return data;
     }
-
-    // Evento de login
-    document.getElementById('formLogin').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const nome = document.getElementById('nomeLogin').value;
-      const senha = document.getElementById('senhaLogin').value;
-
-      try {
-        const user = await validarLogin(nome, senha);
-        if (user) {
-          alert("Login realizado com sucesso!");
-          document.getElementById('loginContainer').style.display = 'none';
-          document.getElementById('cadastroContainer').style.display = 'block';
-        } else {
-          alert("Usuário ou senha inválidos");
-        }
-      } catch (error) {
-        alert("Erro ao validar login: " + error.message);
-      }
-    });
 
     // Gerar código automático
     document.addEventListener('DOMContentLoaded', function() {
