@@ -1,253 +1,511 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestão</title>
+    <title>Edvaldo Portas | Manutenção e Reparo de Portas</title>
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome para ícones -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --primary-color: #3498db;
-            --secondary-color: #2c3e50;
-            --accent-color: #e74c3c;
+            --primary-color: #8B4513;
+            --secondary-color: #D2691E;
+            --dark-color: #3E2723;
+            --light-color: #F5F5F5;
         }
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .navbar {
+            background-color: var(--dark-color);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         
         .navbar-brand {
-            font-weight: 700;
+            font-weight: bold;
+            font-size: 1.5rem;
         }
         
         .hero-section {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('imagens/img1.jpg');
+            background-size: cover;
+            background-position: center;
             color: white;
-            padding: 3rem 0;
-            margin-bottom: 2rem;
-            border-radius: 0 0 20px 20px;
+            padding: 150px 0;
+            text-align: center;
         }
         
-        .card {
+        .section-title {
+            position: relative;
+            margin-bottom: 2rem;
+            padding-bottom: 0.5rem;
+        }
+        
+        .section-title:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background-color: var(--secondary-color);
+        }
+        
+        .service-card {
+            transition: transform 0.3s ease;
             border: none;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
             height: 100%;
         }
         
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        .service-card:hover {
+            transform: translateY(-10px);
         }
         
-        .card-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
+        .service-icon {
+            font-size: 3rem;
             color: var(--primary-color);
+            margin-bottom: 1rem;
         }
         
-        .btn-primary {
+        .testimonial-card {
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .testimonial-author {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-top: 15px;
+        }
+        
+        .portfolio-item {
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .portfolio-item img {
+            transition: transform 0.5s ease;
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+        
+        .portfolio-item:hover img {
+            transform: scale(1.05);
+        }
+        
+        .portfolio-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(139, 69, 19, 0.8);
+            color: white;
+            padding: 15px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .portfolio-item:hover .portfolio-overlay {
+            transform: translateY(0);
+        }
+        
+        .cta-section {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+        }
+        
+        .btn-primary-custom {
             background-color: var(--primary-color);
-            border: none;
-            padding: 0.5rem 1.5rem;
-            border-radius: 50px;
+            border-color: var(--primary-color);
+            padding: 12px 30px;
+            font-weight: bold;
+            transition: all 0.3s ease;
         }
         
-        .btn-primary:hover {
-            background-color: #2980b9;
+        .btn-primary-custom:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transform: translateY(-3px);
+        }
+        
+        .whatsapp-float {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            bottom: 40px;
+            right: 40px;
+            background-color: #25d366;
+            color: #FFF;
+            border-radius: 50px;
+            text-align: center;
+            font-size: 30px;
+            box-shadow: 2px 2px 3px #999;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(37, 211, 102, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+            }
         }
         
         footer {
-            background-color: var(--secondary-color);
+            background-color: var(--dark-color);
             color: white;
-            padding: 2rem 0;
-            margin-top: 3rem;
+            padding: 40px 0 20px;
+        }
+        
+        .footer-links a {
+            color: #ddd;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            color: var(--secondary-color);
         }
         
         @media (max-width: 768px) {
             .hero-section {
-                padding: 2rem 0;
+                padding: 100px 0;
             }
             
-            .card {
-                margin-bottom: 1.5rem;
+            .whatsapp-float {
+                width: 50px;
+                height: 50px;
+                bottom: 20px;
+                right: 20px;
+                font-size: 24px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Barra de navegação -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <!-- Cabeçalho/Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="#">Sistema de Gestão</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <a class="navbar-brand" href="#">Edvaldo Portas</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#">Início</a>
+                        <a class="nav-link active" href="#inicio">Início</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Sobre</a>
+                        <a class="nav-link" href="#servicos">Serviços</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Contato</a>
+                        <a class="nav-link" href="#portfolio">Portfólio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#depoimentos">Depoimentos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contato">Contato</a>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <!-- Seção Hero -->
-    <section class="hero-section">
-        <div class="container text-center">
-            <h1 class="display-4 fw-bold">Sistema de Gestão Comercial</h1>
-            <p class="lead">Gerencie suas vendas, estoque e finanças em um único lugar</p>
+    <!-- Seção Hero/Apresentação -->
+    <section id="inicio" class="hero-section">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-4">Especialista em Manutenção de Portas</h1>
+            <p class="lead mb-4">Serviços profissionais para residências, condomínios e empresas. Mais de 15 anos de experiência em reparo e manutenção de portas de madeira.</p>
+            <a href="#contato" class="btn btn-primary-custom btn-lg">Solicitar Orçamento</a>
         </div>
     </section>
 
-    <!-- Seção de Cards -->
-    <section class="container mb-5">
-        <div class="row g-4">
-            <!-- Frente de Caixa -->
-            <div class="col-md-4 col-sm-6">
-                <div class="card">
-                    <div class="card-body text-center p-4">
-                        <i class="fas fa-cash-register card-icon"></i>
-                        <h5 class="card-title">Frente de Caixa</h5>
-                        <p class="card-text">Registre vendas rápidas e emissão de notas fiscais.</p>
-                        <a href="https://wellingtonsidifran.github.io/temp-storage/frente_caixa" class="btn btn-primary" target="_blank">Acessar</a>
+    <!-- Seção Sobre/Serviços -->
+    <section id="servicos" class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6 mb-5">
+                    <h2 class="section-title">Sobre Nossos Serviços</h2>
+                    <p>Com mais de 15 anos de experiência no mercado, oferecemos serviços especializados em manutenção, reparo e instalação de portas de madeira para residências, condomínios e empresas.</p>
+                    <p>Nossa missão é garantir que suas portas estejam sempre em perfeito estado de funcionamento, proporcionando segurança, conforto e durabilidade para seu patrimônio.</p>
+                    <p>Trabalhamos com materiais de alta qualidade e técnicas modernas para oferecer o melhor resultado, sempre com atenção aos detalhes e compromisso com a satisfação do cliente.</p>
+                    <div class="mt-4">
+                        <a href="#contato" class="btn btn-primary-custom">Entre em Contato</a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="card service-card h-100 text-center p-4">
+                                <div class="service-icon">
+                                    <i class="fas fa-tools"></i>
+                                </div>
+                                <h4>Reparos</h4>
+                                <p>Consertamos portas danificadas, trincadas ou com problemas de funcionamento.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="card service-card h-100 text-center p-4">
+                                <div class="service-icon">
+                                    <i class="fas fa-paint-roller"></i>
+                                </div>
+                                <h4>Envernizamento</h4>
+                                <p>Aplicação de verniz e outros acabamentos para proteger e embelezar suas portas.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="card service-card h-100 text-center p-4">
+                                <div class="service-icon">
+                                    <i class="fas fa-door-open"></i>
+                                </div>
+                                <h4>Instalação</h4>
+                                <p>Instalação profissional de portas novas com garantia de qualidade.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="card service-card h-100 text-center p-4">
+                                <div class="service-icon">
+                                    <i class="fas fa-lock"></i>
+                                </div>
+                                <h4>Fechaduras</h4>
+                                <p>Substituição e reparo de fechaduras, trincos e sistemas de segurança.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <!-- Relatório de Vendas -->
-            <div class="col-md-4 col-sm-6">
-                <div class="card">
-                    <div class="card-body text-center p-4">
-                        <i class="fas fa-chart-line card-icon"></i>
-                        <h5 class="card-title">Relatório de Vendas</h5>
-                        <p class="card-text">Analise o desempenho de vendas por período.</p>
-                        
-                        <a href="https://wellingtonsidifran.github.io/temp-storage/relatorio_vendas" class="btn btn-primary" target="_blank">Acessar</a>
-                    </div>
-                </div>
-            </div>
-                        
-            <!-- Pagamentos -->
-            <div class="col-md-4 col-sm-6">
-                <div class="card">
-                    <div class="card-body text-center p-4">
-                        <i class="fas fa-money-bill-wave card-icon"></i>
-                        <h5 class="card-title">Pagamentos</h5>
-                        <p class="card-text">Gerencie recebimentos e formas de pagamento.</p>
-                        <a href="https://wellingtonsidifran.github.io/temp-storage/relatorio_pagamentos" class="btn btn-primary" target="_blank">Acessar</a>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Estoque Atual -->
-            <div class="col-md-4 col-sm-6">
-                <div class="card">
-                    <div class="card-body text-center p-4">
-                        <i class="fas fa-boxes card-icon"></i>
-                        <h5 class="card-title">Estoque Atual</h5>
-                        <p class="card-text">Consulte os produtos disponíveis em estoque.</p>
-                        <a href="https://wellingtonsidifran.github.io/temp-storage/estoque_atual" class="btn btn-primary" target="_blank">Acessar</a>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Movimentações de Estoque -->
-            <div class="col-md-4 col-sm-6">
-                <div class="card">
-                    <div class="card-body text-center p-4">
-                        <i class="fas fa-exchange-alt card-icon"></i>
-                        <h5 class="card-title">Movimentações</h5>
-                        <p class="card-text">Registre entradas, saídas e ajustes de estoque.</p>
-                        <a href="https://wellingtonsidifran.github.io/temp-storage/movimentacoes_estoque" class="btn btn-primary" target="_blank">Acessar</a>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Compras -->
-            <div class="col-md-4 col-sm-6 mx-auto">
-                <div class="card">
-                    <div class="card-body text-center p-4">
-                        <i class="fas fa-shopping-cart card-icon"></i>
-                        <h5 class="card-title">Compras</h5>
-                        <p class="card-text">Registre compras de fornecedores e gere ordens.</p>
-                        <a href="https://wellingtonsidifran.github.io/temp-storage/compras.html" class="btn btn-primary" target="_blank">Acessar</a>
-                    </div>
-                </div>
-            </div>
+        </div>
+    </section>
 
-             <!-- Compras -->
-            <div class="col-md-4 col-sm-6 mx-auto">
-                <div class="card">
-                    <div class="card-body text-center p-4">
-                        <i class="fas fa-building card-icon"></i>
-                        <h5 class="card-title">Cadastro da Empresa</h5>
-                        <p class="card-text">Registre os dados de sua empresa.</p>
-                        <a href="https://wellingtonsidifran.github.io/temp-storage/dados_empresa" class="btn btn-primary" target="_blank">Acessar</a>
+    <!-- Seção Portfólio -->
+    <section id="portfolio" class="py-5 bg-light">
+        <div class="container">
+            <h2 class="section-title text-center mb-5">Nossos Trabalhos</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="portfolio-item">
+    <img src="imagens/img1.jpeg" alt="Porta restaurada em residência" class="img-fluid">
+    <div class="portfolio-overlay">
+        <h5>Restauração Completa</h5>
+        <p>Transformamos o visual original com um trabalho detalhado que devolve o brilho e o charme do primeiro dia.</p>
+    </div>
+</div>
+</div>
+<div class="col-md-4">
+    <div class="portfolio-item">
+        <img src="imagens/img2.jpeg" alt="Porta de condomínio reparada" class="img-fluid">
+        <div class="portfolio-overlay">
+            <h5>Reparo</h5>
+            <p>Recuperamos cada detalhe para devolver a segurança, funcionalidade e beleza ao seu ambiente.</p>
+        </div>
+    </div>
+</div>
+<div class="col-md-4">
+    <div class="portfolio-item">
+        <img src="imagens/img3.jpeg" alt="Porta empresarial com novo acabamento" class="img-fluid">
+        <div class="portfolio-overlay">
+            <h5>Acabamento Empresarial</h5>
+            <p>Um toque refinado que valoriza o espaço corporativo e reforça a identidade da sua empresa.</p>
+        </div>
+    </div>
+</div>
+<div class="col-md-4">
+    <div class="portfolio-item">
+        <img src="imagens/img4.jpeg" alt="Instalação de porta residencial" class="img-fluid">
+        <div class="portfolio-overlay">
+            <h5>Instalação Residencial</h5>
+            <p>Execução precisa e acabamento impecável para integrar estilo e qualidade ao seu lar.</p>
+        </div>
+    </div>
+</div>
+<div class="col-md-4">
+    <div class="portfolio-item">
+        <img src="imagens/img5.jpeg" alt="Manutenção preventiva em portas" class="img-fluid">
+        <div class="portfolio-overlay">
+            <h5>Manutenção Preventiva</h5>
+            <p>Cuidado constante para preservar a durabilidade e manter sempre a melhor aparência.</p>
+        </div>
+    </div>
+</div>
+
+                <div class="col-md-4">
+                    <div class="portfolio-item">
+                        <div class="d-flex align-items-center justify-content-center h-100 bg-primary text-white p-4 rounded">
+                            <div class="text-center">
+                                <h4>Mais de 50 projetos concluídos</h4>
+                                <p>Confiança e qualidade em cada trabalho</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </section>
 
+    <!-- Seção Depoimentos -->
+    <section id="depoimentos" class="py-5">
+        <div class="container">
+            <h2 class="section-title text-center mb-5">O Que Nossos Clientes Dizem</h2>
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="testimonial-card">
+                        <p>"Contratei o Edvaldo Portas para restaurar a porta da minha casa que estava com problemas há anos. Fiquei impressionado com a qualidade do trabalho e o profissionalismo. Minha porta ficou muito boa!"</p>
+                        <div class="testimonial-author">
+                            <p>Wellington Reis</p>
+                            <small>Jandira - São Paulo</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="testimonial-card">
+                        <p>"Conheci a empresa no ano de 2023, quando já havíamos tentado, sem sucesso, com diversas outras empresas, realizar a instalação de portas e guarnições em uma de nossas obras em Suzano. Foi então que conheci a Edvaldo Portas, que solucionou nossos problemas, atendendo às nossas dificuldades com total profissionalismo e dedicação, exatamente como necessitávamos naquele momento.
+
+Dessa forma, encerro meu depoimento agradecendo e parabenizando toda a equipe da Edvaldo Portas pelo excelente trabalho realizado.
+
+Desde já, agradeço!"</p>
+                        <div class="testimonial-author">
+                            <p>Rosendo Viana</p>
+                            <small>Suzano - São Paulo</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="testimonial-card">
+                        <p>"Precisávamos de um serviço urgente para a porta da nossa loja. O Edvaldo atendeu rapidamente e resolveu o problema com maestria. Excelente custo-benefício!"</p>
+                        <div class="testimonial-author">
+                            <p>Roberto Santos</p>
+                            <small>Empresário - Comércio Local</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção CTA -->
+    <section id="contato" class="cta-section">
+        <div class="container">
+            <h2 class="mb-4">Precisa de Serviços para Suas Portas?</h2>
+            <p class="lead mb-4">Entre em contato agora mesmo para um orçamento gratuito e sem compromisso.</p>
+            <a href="https://wa.me/5511998242731?text=Olá! Gostaria de solicitar um orçamento para manutenção de portas." class="btn btn-light btn-lg" target="_blank">
+                <i class="fab fa-whatsapp me-2"></i> Fale Conosco pelo WhatsApp
+            </a>
         </div>
     </section>
 
     <!-- Rodapé -->
-    <footer class="footer">
+    <footer>
         <div class="container">
             <div class="row">
-                <div class="col-md-6">
-                    <h5>Sobre o Sistema</h5>
-                    <p>Sistema de gestão comercial desenvolvido para pequenas e médias empresas, integrando vendas, estoque e finanças.</p>
+                <div class="col-lg-4 mb-4">
+                    <h4>Edvaldo Portas</h4>
+                    <p>Especialista em manutenção, reparo e instalação de portas de madeira para residências, condomínios e empresas.</p>
                 </div>
-                <div class="col-md-6">
-                    <h5>Contato do Desenvolvedor</h5>
-                    <ul class="list-unstyled">
-                        <li><i class="fas fa-user me-2"></i> Seu Nome</li>
-                        <li><i class="fas fa-envelope me-2"></i> seuemail@exemplo.com</li>
-                        <li><i class="fas fa-phone me-2"></i> (XX) XXXX-XXXX</li>
-                        <li><i class="fas fa-code me-2"></i> Versão 1.0.0</li>
-                    </ul>
+                <div class="col-lg-4 mb-4">
+                    <h5>Contato</h5>
+                    <p><i class="fas fa-phone me-2"></i> (11) 97194-9820</p>
+                    <p><i class="fas fa-envelope me-2"></i> Edvaldoportas1@gmail.com</p>
+                    <p><i class="fas fa-map-marker-alt me-2"></i> São Paulo - SP</p>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <h5>Links Rápidos</h5>
+                    <div class="footer-links">
+                        <p><a href="#inicio">Início</a></p>
+                        <p><a href="#servicos">Serviços</a></p>
+                        <p><a href="#portfolio">Portfólio</a></p>
+                        <p><a href="#depoimentos">Depoimentos</a></p>
+                        <p><a href="#contato">Contato</a></p>
+                    </div>
                 </div>
             </div>
-            <hr class="mt-4 bg-light">
+            <hr class="my-4">
             <div class="text-center">
-                <p class="mb-0">&copy; 2023 Sistema de Gestão. Todos os direitos reservados.</p>
-            </div>
+    <p>&copy; 2023 Edvaldo Portas. Todos os direitos reservados.</p>
+    <p>
+        Criador do site: 
+        <a href="https://wa.me/5511999402929" target="_blank" style="text-decoration: none; color: inherit; font-weight: bold;">
+            Wellington TI
+        </a>
+    </p>
+</div>
+
         </div>
     </footer>
 
-    <!-- Bootstrap JS e Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Botão Flutuante do WhatsApp -->
+    <a href="https://wa.me/5511971949820?text=Olá! Gostaria de solicitar um orçamento para manutenção de portas." class="whatsapp-float" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
-        // Aqui você pode adicionar scripts JavaScript personalizados
-        document.addEventListener('DOMContentLoaded', function() {
-            // Adicione efeitos ou interações aqui
-            console.log('Página carregada com sucesso!');
+        // Smooth scrolling para links internos
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                if(targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if(targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // Atualizar classe ativa na navegação ao rolar
+        window.addEventListener('scroll', function() {
+            let sections = document.querySelectorAll('section');
+            let navLinks = document.querySelectorAll('.navbar-nav .nav-link');
             
-            // Exemplo: Adicionar confirmação ao clicar nos botões
-            const buttons = document.querySelectorAll('.btn-primary');
-            buttons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    // Descomente para adicionar confirmação
-                    // if(!confirm('Você será redirecionado para outra página. Continuar?')) {
-                    //     e.preventDefault();
-                    // }
-                });
+            let current = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if(scrollY >= (sectionTop - 100)) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if(link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
             });
         });
     </script>
 </body>
 </html>
-
